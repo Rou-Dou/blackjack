@@ -1,4 +1,9 @@
 {
     "python.analysis.typeCheckingMode": "basic",
-    "python.autoComplete.extraPaths": ["./blackjack/blackjack.py"]
+    "python.autoComplete.extraPaths": [
+        "./blackjack/blackjack.py"
+    ],
+    "python.analysis.extraPaths": [
+        "./blackjack/blackjack.py"
+    ]
 }
