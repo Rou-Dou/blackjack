@@ -1,4 +1,18 @@
 from random import randint, choice
+from card_dictionary import *
+
+
+class PlayerHands:
+    def __init__(self, player_one_hand, player_two_hand, player_three_hand, player_four_hand, dealer_hand, deck):
+        self.player_one_hand = player_one_hand
+        self.player_two_hand = player_two_hand
+        self.player_three_hand = player_three_hand
+        self.player_four_hand = player_four_hand
+        self.dealer_hand = dealer_hand
+        self.deck = deck
+
+    def __iter__(self):
+        return self
 
 
 def shuffle_deck(deck, num_shuffles):
@@ -99,7 +113,7 @@ def create_deck():
 
     card_list = []
 
-    suits_list = ['hearts', 'spades', 'diamonds', 'clubs']
+    suits_list = ['Hearts', 'Spades', 'Diamonds', 'Clubs']
     face_cards = ['Ace', 'Jack', 'Queen', 'King']
     card_list = []
 
@@ -129,7 +143,6 @@ def cut_deck(deck):
     return dh
 
 def deal_cards(deck, players):
-
     # add 1 to players for dealer
     players += 1
 
@@ -139,22 +152,44 @@ def deal_cards(deck, players):
     player_four_hand = []
     dealer_hand = []
 
-    if deck.length == 1:
+    if len(deck) == 1:
        new_deck = create_deck()
        new_deck_shuffled = shuffle_deck(new_deck, 7)
-       deck = deck + new_deck
+       deck = deck + new_deck_shuffled
         
     
     #burn a card
     deck.pop(0)
 
     # deal to each player in order
-    i = 0
-    for i in range(0, players*2):
+    for i in range(0, 2):
+        if len(deck) < 5:
+            new_deck = create_deck()
+            new_deck_shuffled = shuffle_deck(new_deck, 7)
+            deck = deck + new_deck_shuffled
+
+        player_one_hand.append(deck.pop(0))
+        player_two_hand.append(deck.pop(0))
+        player_three_hand.append(deck.pop(0))
+        player_four_hand.append(deck.pop(0))
+        dealer_hand.append(deck.pop(0))
+
+    hands = PlayerHands(player_one_hand, player_two_hand, player_three_hand, player_four_hand, dealer_hand, deck)
+
+    return hands
+
+def count_hand(hand):
+    current_sum = 0
+    for i in hand:
+        current_sum += card_values[i]
+    return current_sum
+
+def has_ace(hand):
+    for i in hand:
+        if i.find('Ace'):
+            return True
+    return False
+
+
         
-        player_one_hand.append(deck.pop[0])
-        player_two_hand.append(deck.pop[0])
-        player_three_hand.append(deck.pop[0])
-        player_four_hand.append(deck.pop[0])
-        dealer_hand.append(deck.pop[0])
 
