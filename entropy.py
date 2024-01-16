@@ -1,6 +1,5 @@
 import numpy as n
 
-
 # determine randomness of shuffle
 def entropy_value(fresh_deck, shuffled_deck):
     distance_array = []
