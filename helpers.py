@@ -1,14 +1,15 @@
 from random import randint, choice
+from classes import *
 
-def shuffle_deck(deck, num_shuffles):
-    shuffle_count = 1
-    current_shuffle = deck
+def shuffle_deck(deck:list[Card], num_shuffles:int) -> list[Card]:
+    shuffle_count: int = 1
+    current_shuffle:list[Card] = deck
 
     # Prep work for the shuffle, creates two deck halves to be shuffled together using a random cut location
     while shuffle_count <= num_shuffles:
         #clear the two halves to be re-filled with new values from the current_shuffle
-        left_half = []
-        right_half = []
+        left_half:list[Card] = []
+        right_half:list[Card] = []
 
         # Choose a random cut location to break the deck in two parts
         # recombine but inverse to perform a cut
@@ -29,15 +30,15 @@ def shuffle_deck(deck, num_shuffles):
         length_right = len(right_half)
 
         # create counters for when a hand is skipped due to RNG
-        left_skip_count = 0
-        right_skip_count = 0
+        left_skip_count:int = 0
+        right_skip_count:int = 0
 
         # This loop will perform the bridge shuffle one time
         while True:
 
             # generate bool for determining which hand will append cards
-            left_go = choice([True, False])
-            right_go = choice([True, False])
+            left_go:bool = choice([True, False])
+            right_go:bool = choice([True, False])
 
             # if the hand has been skipped twice and would be skipped again, automatically set it to true
             if left_skip_count > 1 and left_go == False:
@@ -46,14 +47,14 @@ def shuffle_deck(deck, num_shuffles):
                 right_go = True
 
             # determine a jitter multiplier to increase randomness on how many cards append per hand per loop
-            left_jitter = range(0,randint(1,2))
-            right_jitter = range(0, randint(1,2))
+            left_jitter:range = range(0,randint(1,2))
+            right_jitter:range = range(0, randint(1,2))
 
             # if either hand would go negative from the multiplier ensure that the loop will only trigger once
             if length_left - len(left_jitter) < 0:
-                left_jitter = [0]
+                left_jitter = range(0,0)
             if length_right - len(right_jitter) < 0:
-                right_jitter = [0]
+                right_jitter = range(0,0)
 
             # This is where cards mix: check if the left and/or right deck should fire, if so append cards 
             # according to the multiplier, if not increment skip count
@@ -95,18 +96,14 @@ def shuffle_deck(deck, num_shuffles):
     return current_shuffle
 
 
-def cut_deck(deck):
-    class deck_halves:
-        def __init__(self,left_half, right_half):
-            self.left_half = left_half
-            self.right_half = right_half
+def cut_deck(deck:list[Card]) -> DeckHalves:
 
-    deck_cut = randint(24,32)
-    left_half = deck[:deck_cut]
-    right_half = deck[deck_cut:]
+    deck_cut:int = randint(24,32)
+    left_half:list[Card] = deck[:deck_cut]
+    right_half:list[Card] = deck[deck_cut:]
 
 
-    dh = deck_halves(left_half, right_half)
+    dh = DeckHalves(left_half, right_half)
 
     return dh
 
