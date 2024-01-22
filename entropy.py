@@ -1,6 +1,5 @@
 import numpy as n
 from classes import Card
-from typing import Union
 
 # determine randomness of shuffle
 def entropy_value(fresh_deck:list[Card], shuffled_deck:list[Card]) -> float:

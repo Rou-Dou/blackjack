@@ -107,41 +107,50 @@ def cut_deck(deck:list[Card]) -> DeckHalves:
 
     return dh
 
-# def deal_cards(deck, players):
-#     # add 1 to players for dealer
-#     players += 1
 
-#     player_one_hand = []
-#     player_two_hand = []
-#     player_three_hand = []
-#     player_four_hand = []
-#     dealer_hand = []
+def createPlayer(player_list:Players, player_name:str, money:int, seat_position:int) -> None:
+    player_class = Hand(player_name, seat_position, money)
+    player_list.add_player(player_class)
 
-#     if len(deck) == 1:
-#        new_deck = create_deck()
-#        new_deck_shuffled = shuffle_deck(new_deck, 7)
-#        deck = deck + new_deck_shuffled
-        
+def getSeatPosition(seat_positions) -> int:
+    return seat_positions.pop(randint(0, len(seat_positions) - 1))
+
+
+
+def dealCards(deck:Deck, num_players:int, players:Players) -> None:
+    # burn a card
+    deck.burn_card()
     
-#     #burn a card
-#     deck.pop(0)
+    deal_card:int = 1
+    while deal_card < 3:
+        for player in players.players:
+            if player.seat_position == 1:
+                player.add_card(deck.deal_card())
+                break
+        for player in players.players:
+            if player.seat_position == 2:
+                player.add_card(deck.deal_card())
+                break
+        for player in players.players:
+            if player.seat_position == 3:
+                player.add_card(deck.deal_card())
+                break
+        for player in players.players:
+            if player.seat_position == 4:
+                player.add_card(deck.deal_card())
+                break
+        for player in players.players:
+            if player.seat_position == 5:
+                player.add_card(deck.deal_card())
+                break
+        deal_card += 1
+    
 
-#     # deal to each player in order
-#     for i in range(0, 2):
-#         if len(deck) < 5:
-#             new_deck = create_deck()
-#             new_deck_shuffled = shuffle_deck(new_deck, 7)
-#             deck = deck + new_deck_shuffled
 
-#         player_one_hand.append(deck.pop(0))
-#         player_two_hand.append(deck.pop(0))
-#         player_three_hand.append(deck.pop(0))
-#         player_four_hand.append(deck.pop(0))
-#         dealer_hand.append(deck.pop(0))
 
-#     hands = PlayerHands(player_one_hand, player_two_hand, player_three_hand, player_four_hand, dealer_hand, deck)
 
-#     return hands
+
+
 
 # def count_hand(hand):
 #     current_sum = 0

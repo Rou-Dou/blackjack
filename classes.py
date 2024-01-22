@@ -1,8 +1,6 @@
-
 from enum import Enum
 from value_dictionary import *
-from collections.abc import Iterable  
-from typing import Union
+
 
 class Faces(Enum):
     Ace = 1
@@ -19,11 +17,13 @@ class Faces(Enum):
     Queen = 12
     King = 13
 
+
 class Suits(Enum):
     Clubs = 1
     Hearts = 2
     Spades = 3
     Diamonds = 4
+
 
 class Card:
     def __init__(self, face:str, suit:str, value:int) -> None:
@@ -34,11 +34,13 @@ class Card:
     def show_card(self) -> None:
         print(f'{self.face} of {self.suit}')
 
+
 class Hand:
-    def __init__(self, player_name:str) -> None:
+    def __init__(self, player_name:str, seat_position:int, money:int) -> None:
         self.hand:list[Card] = [] #hand is type list with object
-        self.player_name = player_name #player name is type string
-    
+        self.player_name:str = player_name #player name is type string
+        self.seat_position:int = seat_position #seat position is type int
+        self.money:int = money
 
     def add_card(self, card:Card) -> None:
         self.hand.append(card)
@@ -56,19 +58,22 @@ class Hand:
             
         return hand_value
         
-        
     def has_ace(self) -> bool:
         for card in self.hand:
             if card.face == 'Ace':
                 return True
         return False
     
-    # def has_blackjack(self):
-    #     if 
+    def show_hand(self) -> None:
+        card_position:int = 1
+        print(self.player_name)
+        for card in self.hand:
+            print(f'{card_position}: {card}')
+
 
 class Deck:
     def __init__(self) -> None:
-        self.cards:list[Card] = [] #cards is type list
+        self.cards:list[Card] = [] #cards is a list of class Card
 
     def create_deck(self) -> None:
         for suit in Suits:
@@ -79,23 +84,24 @@ class Deck:
         for card in self.cards:
             card.show_card()
 
-    def deal_card(self) -> None:
+    def deal_card(self) -> Card:
+        card = self.cards.pop(0)
+        return card
+    
+    def burn_card(self) -> None:
         self.cards.pop(0)
 
-class Player:
-    def __init__(self) -> None:
-        pass
-
+            
 class Players:
     def __init__(self) -> None:
-        self.players:list[object] = [] #players is type list
+        self.players:list[Hand] = [] #players is a list of type Hand
+
+    def add_player(self, player:Hand) -> None:
+        self.players.append(player)
 
 
 class DeckHalves:
     def __init__(self,left_half:list[Card], right_half:list[Card]) -> None:
-        self.left_half:list[Card] = left_half
+        self.left_half:list[Card] = left_half 
         self.right_half:list[Card] = right_half
-
-
-
 
