@@ -31,8 +31,8 @@ class Card:
         self.suit:str = suit #suit is type string
         self.value:int = value #value is type int
 
-    def show_card(self) -> None:
-        print(f'{self.face} of {self.suit}')
+    def show_card(self) -> str:
+        return f'{self.face} of {self.suit}'
 
 
 class Hand:
@@ -42,9 +42,9 @@ class Hand:
         self.seat_position:int = seat_position #seat position is type int
         self.money:int = money
 
+
     def add_card(self, card:Card) -> None:
         self.hand.append(card)
-        print(f'{self.player_name} got a {card}!')
 
     def count_hand(self) -> int:
         hand_value:int = 0
@@ -64,11 +64,14 @@ class Hand:
                 return True
         return False
     
-    def show_hand(self) -> None:
+    def show_hand(self) -> str:
         card_position:int = 1
+        hand_str:str = ''
         print(self.player_name)
         for card in self.hand:
-            print(f'{card_position}: {card}')
+            hand_str += (f'{card_position}: {card.show_card()}\n')
+            card_position += 1
+        return hand_str
 
 
 class Deck:
@@ -85,8 +88,7 @@ class Deck:
             card.show_card()
 
     def deal_card(self) -> Card:
-        card = self.cards.pop(0)
-        return card
+        return self.cards.pop(0)
     
     def burn_card(self) -> None:
         self.cards.pop(0)
@@ -95,10 +97,30 @@ class Deck:
 class Players:
     def __init__(self) -> None:
         self.players:list[Hand] = [] #players is a list of type Hand
+        for i in range(0,5):
+            self.players.append(Hand('', -1, -1))
 
-    def add_player(self, player:Hand) -> None:
-        self.players.append(player)
+    def add_player(self, player:Hand, index:int) -> None:
+        self.players[index - 1] = player
 
+
+    def get_players(self) -> list[Hand]:
+        return self.players
+    
+    def get_player(self, name:str) -> Hand:
+        for player in self.players:
+            if player.player_name == name:
+                return player
+        raise Exception('Player name not found')
+    
+    def get_player_hand(self, first_player_name) -> str:
+        player_hand = self.get_player(first_player_name)
+        return f'Your hand: {player_hand.show_hand()}'
+
+    def dealer_face_up(self) -> str:
+        dealer_hand = self.get_player('Dealer')
+        return f'The dealer has a {dealer_hand.hand[1].show_card()}'
+        
 
 class DeckHalves:
     def __init__(self,left_half:list[Card], right_half:list[Card]) -> None:

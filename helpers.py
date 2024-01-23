@@ -110,7 +110,7 @@ def cut_deck(deck:list[Card]) -> DeckHalves:
 
 def createPlayer(player_list:Players, player_name:str, money:int, seat_position:int) -> None:
     player_class = Hand(player_name, seat_position, money)
-    player_list.add_player(player_class)
+    player_list.add_player(player_class, seat_position)
 
 def getSeatPosition(seat_positions) -> int:
     return seat_positions.pop(randint(0, len(seat_positions) - 1))
@@ -145,10 +145,7 @@ def dealCards(deck:Deck, num_players:int, players:Players) -> None:
                 break
         deal_card += 1
     
-
-
-
-
+# def hit_stand(player_hand) -> Hand:
 
 
 
