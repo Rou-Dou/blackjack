@@ -1,7 +1,6 @@
 from enum import Enum
 from value_dictionary import *
 
-
 class Faces(Enum):
     Ace = 1
     Two = 2
@@ -125,12 +124,12 @@ class Players:
         return f'Your hand: {player_hand.show_hand()}'
 
     def show_dealer_up_card(self) -> str:
-        dealer_hand = self.get_player_by_name('Dealer')
-        return f'The dealer has a {dealer_hand.hand[1].show_card()}'
+        dealer_hand = self.get_player_by_name('6d1b7d31-238f-46dd-9c7f-7dd281e53feb')
+        return f'The dealer has a {dealer_hand.hand[0].show_card()}'
     
     def get_dealer_up_card(self) -> int:
-        dealer_hand = self.get_player_by_name('Dealer')
-        return dealer_hand.hand[1].value
+        dealer_hand = self.get_player_by_name('6d1b7d31-238f-46dd-9c7f-7dd281e53feb')
+        return dealer_hand.hand[0].value
 
 class DeckHalves:
     def __init__(self,left_half:list[Card], right_half:list[Card]) -> None:
