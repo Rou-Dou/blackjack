@@ -12,16 +12,17 @@ seat_position = getSeatPosition(seat_positions)
 
 player_directory = Players()
 
-# while True:
-player_name = input('What is your name?: ')
-    # try: 
-    #     first_player_hand = player_directory.get_player(player_name)
-    #     break
-    # except:
-    #     continue
+player_name_prompt = 'What is your name?: '
+while True:
+    player_name = input(player_name_prompt)
 
-print()
+    if player_name == '6d1b7d31-238f-46dd-9c7f-7dd281e53feb':
+        player_name_prompt = 'Invalid player_name, please enter a different name: '
+    else:
+        break
+
 createPlayer(player_directory, player_name, 100, seat_position)
+player_directory.add_player(Hand(player_name, 100, seat_position), seat_position)
 
 while len(seat_positions) > 0:
     pop_index = randint(0, len(bot_names) - 1)
@@ -29,7 +30,7 @@ while len(seat_positions) > 0:
     createPlayer(player_directory, bot_names.pop(pop_index), 100, cpu_seat_position)
 
 # create dealer
-createPlayer(player_directory, 'Dealer', 10000000, 5)
+createPlayer(player_directory, '6d1b7d31-238f-46dd-9c7f-7dd281e53feb', 10000000, 5)
 
 dealCards(deck, 5, player_directory)
 
@@ -46,30 +47,30 @@ while turn < 6:
     dealer_up_card = player_directory.get_dealer_up_card()
 
     if current_player.player_name == player_name:
-        print(f'Current hand value is {first_player.count_hand()}')
+        print(f'Current hand value is {first_player.count_hand()}\n')
         player_hs:str = input('Would you like to hit or stand?: ')
         if player_hs.lower() == 'hit':
             first_player.add_card(deck.deal_card())
         elif player_hs.lower() == 'stand':
-            print(f'you stood with a hand of: {first_player.show_hand()} with a value of {first_player.count_hand()}')
+            print(f'you stood with a hand of: {first_player.show_hand()} with a value of {first_player.count_hand()}\n')
     
-    elif current_player.player_name != 'Dealer':
-
+    elif current_player.player_name != '6d1b7d31-238f-46dd-9c7f-7dd281e53feb':
         print(f'{current_player.show_hand()} value: {current_player.count_hand()}')
 
+        shouldHit = False;
+
         if dealer_up_card >= 7 and hand_value >= 12:
-            current_player.add_card(deck.deal_card())
-            print(f'{current_player.player_name} Hit\n')
+            shouldHit = True;
         elif 1 < dealer_up_card < 4 and hand_value == 12:
-            current_player.add_card(deck.deal_card())
-            print(f'{current_player.player_name} Hit\n')
+            shouldHit = True;
         elif dealer_up_card > 9 and hand_value == 10:
-            current_player.add_card(deck.deal_card())
-            print(f'{current_player.player_name} Hit\n')
+            shouldHit = True;
         elif dealer_up_card == 2 or dealer_up_card >= 7 and hand_value == 9:
-            current_player.add_card(deck.deal_card())
-            print(f'{current_player.player_name} Hit\n')
+            shouldHit = True;
         elif hand_value == 8:
+            shouldHit = True;
+
+        if shouldHit:
             current_player.add_card(deck.deal_card())
             print(f'{current_player.player_name} Hit\n')
         else:
