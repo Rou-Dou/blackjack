@@ -95,6 +95,21 @@ def shuffle_deck(deck:list[Card], num_shuffles:int) -> list[Card]:
 
     return current_shuffle
 
+def createNewDeck() -> Deck:
+    # create deck object
+    deck:Deck = Deck()
+
+    # generate a fresh deck
+    deck.create_deck() #deck type is builtins.list
+
+    # save the fresh deck
+    fresh_deck:list[Card] = deck.cards #fresh_deck type is builtins.list
+
+    # shuffle the deck and store it in the deck object
+    deck.cards = shuffle_deck(fresh_deck, 7) #deck.cards type is builtins.list
+
+    return deck
+
 
 def cut_deck(deck:list[Card]) -> DeckHalves:
 

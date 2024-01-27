@@ -67,7 +67,7 @@ class Hand:
     def show_hand(self) -> str:
         card_position:int = 1
         hand_str:str = ''
-        print(self.player_name)
+        print(self.player_name + '\'s hand:')
         for card in self.hand:
             hand_str += (f'{card_position}: {card.show_card()}\n')
             card_position += 1
@@ -93,6 +93,8 @@ class Deck:
     def burn_card(self) -> None:
         self.cards.pop(0)
 
+    def append_deck(self, deck:list[Card]) -> None:
+        self.cards = self.cards + deck
             
 class Players:
     def __init__(self) -> None:
@@ -103,24 +105,32 @@ class Players:
     def add_player(self, player:Hand, index:int) -> None:
         self.players[index - 1] = player
 
-
     def get_players(self) -> list[Hand]:
         return self.players
     
-    def get_player(self, name:str) -> Hand:
+    def get_player_by_name(self, name:str) -> Hand:
         for player in self.players:
             if player.player_name == name:
                 return player
         raise Exception('Player name not found')
     
+    def get_player_by_seat(self, seat:int) -> Hand:
+        for player in self.players:
+            if player.seat_position == seat:
+                return player
+        raise Exception('Player Seat Invalid')
+    
     def get_player_hand(self, first_player_name) -> str:
-        player_hand = self.get_player(first_player_name)
+        player_hand = self.get_player_by_name(first_player_name)
         return f'Your hand: {player_hand.show_hand()}'
 
-    def dealer_face_up(self) -> str:
-        dealer_hand = self.get_player('Dealer')
+    def show_dealer_up_card(self) -> str:
+        dealer_hand = self.get_player_by_name('Dealer')
         return f'The dealer has a {dealer_hand.hand[1].show_card()}'
-        
+    
+    def get_dealer_up_card(self) -> int:
+        dealer_hand = self.get_player_by_name('Dealer')
+        return dealer_hand.hand[1].value
 
 class DeckHalves:
     def __init__(self,left_half:list[Card], right_half:list[Card]) -> None:
