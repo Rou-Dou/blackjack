@@ -1,73 +1,93 @@
 from helpers import *
 from entropy import *
+import mypy
+import json
 
-turn = 1
-num_turns = 4
-deck = createNewDeck()
-dealer_name = '6d1b7d31-238f-46dd-9c7f-7dd281e53feb'
+txt_file = open('player_dictionary.txt', 'r')
+player_dictionary = json.load(txt_file)
 
-seat_positions:list = [1,2,3,4]
-bot_names:list = ['Randy', 'John', 'Joe', 'Bobby', 'Jeoffry', 'Jinx', 'Jerome']
+turn:int = 1
+num_turns:int = 4
+deck:Deck = createNewDeck()
+players:list[Player] = []
+table:list[Player] = []
+bot_names:list[str] = ['Randy', 'John', 'Joe', 'Bobby', 'Jeoffry', 'Jinx', 'Jerome']
 
-seat_position = getSeatPosition(seat_positions)
+# generate cpu and dealer
+while len(bot_names) > 0:
+    createPlayer(player_dictionary, 'cpu', bot_names.pop(0), 100)
 
-player_directory = Players()
+createPlayer(player_dictionary, 'dealer', 'Dealer', 10000000)
 
-player_name_prompt = 'What is your name?: '
+cpus = len(player_dictionary['cpu'])
+
+# create player character
+player_name_prompt:str = 'What is your name?: '
 while True:
-    player_name = input(player_name_prompt)
+    player_name:str = input(player_name_prompt)
 
-    if player_name == dealer_name:
-        player_name_prompt = 'Invalid player_name, please enter a different name: '
+    if player_name.lower() == 'dealer':
+        player_name_prompt:str = 'Invalid player_name, please enter a different name: '
+    elif hasNumbers(player_name):
+        player_name_prompt:str = 'Please only include alphabetical characters in your name: '
     else:
         break
 
-createPlayer(player_directory, player_name, 100, seat_position)
+# create the player character
+createPlayer(player_dictionary, 'player', player_name, 100)
 
-while len(seat_positions) > 0:
-    pop_index = randint(0, len(bot_names) - 1)
-    cpu_seat_position = getSeatPosition(seat_positions)
-    createPlayer(player_directory, bot_names.pop(pop_index), 100, cpu_seat_position)
+players.append(player_dictionary['player'][0])
 
-# create dealer
-createPlayer(player_directory, dealer_name, 10000000, 5)
+for i in range(0,3):
+    players.append(player_dictionary['cpu'][randint(0, cpus - 1)])
 
-dealCards(deck, 5, player_directory)
+#assign seats
+for i in range(0,4):
+    table.append(players.pop(randint(0,len(players)-1)))
+table.append(player_dictionary['dealer'][0])
 
-first_player = player_directory.get_player_by_name(player_name)
 
-print(player_directory.show_dealer_up_card())
+dealCards(deck, 5, table)
+
+# first_player:Hand = player_directory.get_player_by_id()
+
+# print(player_directory.get_player_by_id(dealer_id)
 print()
-print(first_player.show_hand())
+# print(first_player.show_hand())
 
+# Game Loop
 while turn < 6:
     current_player = player_directory.get_player_by_seat(turn)
-    dealer = player_directory.get_player_by_name(dealer_name)
+    dealer = player_directory.get_player_by_name('dealer')
     dealer_up_card = player_directory.get_dealer_up_card()
     
+    # Hit/Stand loop
     while True:
         hand_value = current_player.count_hand()
         
-        if current_player.player_name == player_name:
+        # first_player turn
+        if current_player.player_name == first_player.player_name:
             print(f'Current hand value is {first_player.count_hand()}\n')
 
             player_hs:str = input('Would you like to hit or stand?: ')
 
-            if current_player.count_hand() > 21:
-                print(f'{current_player.player_name} Busted!')
-                break
-
-            elif player_hs.lower() == 'hit':
+            if player_hs.lower() == 'hit':
                 dealt_card = deck.deal_card()
                 first_player.add_card(dealt_card)
-                print(f'{first_player.player_name} you got a {dealt_card.show_card()}')
+                print(f'you got a {dealt_card.show_card()}')
+
+                if current_player.count_hand() > 21:
+                    print(f'You busted!')
+                    break
+            
                 print(f'{current_player.show_hand()} value: {current_player.count_hand()}\n')
 
             elif player_hs.lower() == 'stand':
-                print(f'you stood with a hand of: {first_player.show_hand()} with a value of {first_player.count_hand()}\n')
+                print(f'You stood with a hand of: {first_player.show_hand()} with a value of {first_player.count_hand()}\n')
                 break
-        
-        elif current_player.player_name != dealer_name:
+            
+        # CPU turn
+        elif current_player.id != dealer_id:
             print(f'{current_player.show_hand()} value: {current_player.count_hand()}\n')
             
             shouldHit:bool = False
@@ -95,7 +115,8 @@ while turn < 6:
             else:
                 print(f'{current_player.player_name} Stood\n')
                 break
-
+        
+        # Dealer Turn
         else:
             print(f'{dealer.show_hand()}\nValue: {dealer.count_hand()}') 
             dealer_hand_value = dealer.count_hand()

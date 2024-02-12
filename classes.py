@@ -16,7 +16,6 @@ class Faces(Enum):
     Queen = 12
     King = 13
 
-
 class Suits(Enum):
     Clubs = 1
     Hearts = 2
@@ -35,12 +34,8 @@ class Card:
 
 
 class Hand:
-    def __init__(self, player_name:str, seat_position:int, money:int) -> None:
+    def __init__(self) -> None:
         self.hand:list[Card] = [] #hand is type list with object
-        self.player_name:str = player_name #player name is type string
-        self.seat_position:int = seat_position #seat position is type int
-        self.money:int = money
-
 
     def add_card(self, card:Card) -> None:
         self.hand.append(card)
@@ -66,12 +61,20 @@ class Hand:
     def show_hand(self) -> str:
         card_position:int = 1
         hand_str:str = ''
-        print(self.player_name + '\'s hand:')
         for card in self.hand:
             hand_str += (f'{card_position}: {card.show_card()}\n')
             card_position += 1
         return hand_str
 
+class Player:
+    def __init__(self, type:str, player_name:str, money:int, hand:Hand) -> None:
+        self.type:str = type
+        self.player_name:str = player_name
+        self.money:int = money 
+        self.hand:Hand = hand
+    
+    def get_player_hand(self, player_id:str) -> str:
+        return f"{self.player_name}'s {self.hand.show_hand()}"
 
 class Deck:
     def __init__(self) -> None:
@@ -94,45 +97,8 @@ class Deck:
 
     def append_deck(self, deck:list[Card]) -> None:
         self.cards = self.cards + deck
-            
-class Players:
-    def __init__(self) -> None:
-        self.players:list[Hand] = [] #players is a list of type Hand
-        for i in range(0,5):
-            self.players.append(Hand('', -1, -1))
-
-    def add_player(self, player:Hand, index:int) -> None:
-        self.players[index - 1] = player
-
-    def get_players(self) -> list[Hand]:
-        return self.players
-    
-    def get_player_by_name(self, name:str) -> Hand:
-        for player in self.players:
-            if player.player_name == name:
-                return player
-        raise Exception('Player name not found')
-    
-    def get_player_by_seat(self, seat:int) -> Hand:
-        for player in self.players:
-            if player.seat_position == seat:
-                return player
-        raise Exception('Player Seat Invalid')
-    
-    def get_player_hand(self, first_player_name) -> str:
-        player_hand = self.get_player_by_name(first_player_name)
-        return f'Your hand: {player_hand.show_hand()}'
-
-    def show_dealer_up_card(self) -> str:
-        dealer_hand = self.get_player_by_name('6d1b7d31-238f-46dd-9c7f-7dd281e53feb')
-        return f'The dealer has a {dealer_hand.hand[0].show_card()}'
-    
-    def get_dealer_up_card(self) -> int:
-        dealer_hand = self.get_player_by_name('6d1b7d31-238f-46dd-9c7f-7dd281e53feb')
-        return dealer_hand.hand[0].value
 
 class DeckHalves:
     def __init__(self,left_half:list[Card], right_half:list[Card]) -> None:
         self.left_half:list[Card] = left_half 
         self.right_half:list[Card] = right_half
-

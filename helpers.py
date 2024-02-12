@@ -1,5 +1,6 @@
 from random import randint, choice
 from classes import *
+import uuid
 
 def shuffle_deck(deck:list[Card], num_shuffles:int) -> list[Card]:
     shuffle_count: int = 1
@@ -122,42 +123,22 @@ def cut_deck(deck:list[Card]) -> DeckHalves:
 
     return dh
 
-
-def createPlayer(player_list:Players, player_name:str, money:int, seat_position:int) -> None:
-    player_class = Hand(player_name, seat_position, money)
-    player_list.add_player(player_class, seat_position)
-
-def getSeatPosition(seat_positions) -> int:
+def createPlayer(player_dictionary:dict, player_type, player_name:str, money:int) -> None:
+    character_id:str = uuid.uuid4().hex
+    new_player = Player(player_type, player_name, money, Hand())
+    player_dictionary[player_type].append(new_player)
+    
+def getSeatPosition(seat_positions:list[int]) -> int:
     return seat_positions.pop(randint(0, len(seat_positions) - 1))
 
-
-
-def dealCards(deck:Deck, num_players:int, players:Players) -> None:
+def dealCards(deck:Deck, num_players:int, players:list[Player]) -> None:
     # burn a card
     deck.burn_card()
     
     deal_card:int = 1
     while deal_card < 3:
-        for player in players.players:
-            if player.seat_position == 1:
-                player.add_card(deck.deal_card())
-                break
-        for player in players.players:
-            if player.seat_position == 2:
-                player.add_card(deck.deal_card())
-                break
-        for player in players.players:
-            if player.seat_position == 3:
-                player.add_card(deck.deal_card())
-                break
-        for player in players.players:
-            if player.seat_position == 4:
-                player.add_card(deck.deal_card())
-                break
-        for player in players.players:
-            if player.seat_position == 5:
-                player.add_card(deck.deal_card())
-                break
+        for player in players:
+            player.hand.add_card(deck.deal_card())
         deal_card += 1
     
 # def hit_stand(player_hand) -> Hand:
@@ -175,3 +156,9 @@ def dealCards(deck:Deck, num_players:int, players:Players) -> None:
 #         if i.find('Ace'):
 #             return True
 #     return False
+
+def hasNumbers(player_name:str) -> bool:
+    for char in player_name:
+        if not char.lower() in 'abcdefghijklmnopqrstuvwxyz':
+            return True
+    return False
