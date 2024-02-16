@@ -2,16 +2,21 @@ from helpers import *
 from entropy import *
 import mypy
 import json
+from time import sleep
 
-txt_file = open('player_dictionary.txt', 'r')
+txt_file = open('player_dictionary.json', 'r')
 player_dictionary = json.load(txt_file)
+bot_txt = open('bot_names.txt', 'r')
+bot_names = []
+for line in bot_txt:
+    bot_names.append(line.strip())
+txt_file.close()
 
 turn:int = 1
 num_turns:int = 4
 deck:Deck = createNewDeck()
 players:list[Player] = []
 table:list[Player] = []
-bot_names:list[str] = ['Randy', 'John', 'Joe', 'Bobby', 'Jeoffry', 'Jinx', 'Jerome']
 
 # generate cpu and dealer
 while len(bot_names) > 0:
@@ -19,107 +24,113 @@ while len(bot_names) > 0:
 
 createPlayer(player_dictionary, 'dealer', 'Dealer', 10000000)
 
+save_info = json.dumps(player_dictionary, indent=4)
+
+with open('player_dictionary.txt', 'w') as json_file:
+    json_file.write(save_info)
+
 cpus = len(player_dictionary['cpu'])
 
 # create player character
 player_name_prompt:str = 'What is your name?: '
+
 while True:
     player_name:str = input(player_name_prompt)
 
     if player_name.lower() == 'dealer':
-        player_name_prompt:str = 'Invalid player_name, please enter a different name: '
+        player_name_prompt:str = 'Invalid player_name, please enter a different name: \n'
     elif hasNumbers(player_name):
-        player_name_prompt:str = 'Please only include alphabetical characters in your name: '
+        player_name_prompt:str = 'Please only include alphabetical characters in your name: \n'
     else:
         break
 
 # create the player character
-createPlayer(player_dictionary, 'player', player_name, 100)
+first_player_id = createPlayer(player_dictionary, 'player', player_name, 100)
 
-players.append(player_dictionary['player'][0])
+players.append(player_dictionary['player'][first_player_id])
 
-for i in range(0,3):
-    players.append(player_dictionary['cpu'][randint(0, cpus - 1)])
+while len(players) < 4:
+    selected_player = player_dictionary['cpu'][randint(0, cpus - 1)]
+    if not selected_player in players:
+        players.append(selected_player)
 
 #assign seats
 for i in range(0,4):
     table.append(players.pop(randint(0,len(players)-1)))
 table.append(player_dictionary['dealer'][0])
 
-
 dealCards(deck, 5, table)
 
-# first_player:Hand = player_directory.get_player_by_id()
+dealer_up_card = table[4].hand.get_dealer_up_card()
+dealer_up_card_value = dealer_up_card.value
 
-# print(player_directory.get_player_by_id(dealer_id)
-print()
-# print(first_player.show_hand())
-
-# Game Loop
-while turn < 6:
-    current_player = player_directory.get_player_by_seat(turn)
-    dealer = player_directory.get_player_by_name('dealer')
-    dealer_up_card = player_directory.get_dealer_up_card()
-    
-    # Hit/Stand loop
+print(f"\nThe dealer has a {dealer_up_card.show_card()}")
+# Hit/Stand loop
+for player in table:
+    print(f"\n{player.player_name}'s turn: \n")
     while True:
-        hand_value = current_player.count_hand()
-        
         # first_player turn
-        if current_player.player_name == first_player.player_name:
-            print(f'Current hand value is {first_player.count_hand()}\n')
+        if player.type == 'player':
+            print(f'Current hand value is {player.hand.count_hand()}\n')
 
             player_hs:str = input('Would you like to hit or stand?: ')
 
             if player_hs.lower() == 'hit':
                 dealt_card = deck.deal_card()
-                first_player.add_card(dealt_card)
+                player.hand.add_card(dealt_card)
                 print(f'you got a {dealt_card.show_card()}')
 
-                if current_player.count_hand() > 21:
+                if player.hand.count_hand() > 21:
                     print(f'You busted!')
                     break
             
-                print(f'{current_player.show_hand()} value: {current_player.count_hand()}\n')
+                print(f'{player.get_player_hand()} value: {player.hand.count_hand()}\n')
 
             elif player_hs.lower() == 'stand':
-                print(f'You stood with a hand of: {first_player.show_hand()} with a value of {first_player.count_hand()}\n')
+                print(f'You stood with a hand of:\n {player.get_player_hand()} with a value of {player.hand.count_hand()}\n')
                 break
             
         # CPU turn
-        elif current_player.id != dealer_id:
-            print(f'{current_player.show_hand()} value: {current_player.count_hand()}\n')
+        elif player.type == 'cpu':
+            print(f'{player.hand.show_hand()} value: {player.hand.count_hand()}\n')
             
             shouldHit:bool = False
 
-            if current_player.count_hand() > 21:
-                print(f'{current_player.player_name} Busted!\n')
-                break
+            hand_value = player.hand.count_hand()
 
-            if dealer_up_card >= 7 and 12 <= hand_value <= 16:
+            if hand_value > 21:
+                print(f'{player.player_name} Busted!\n')
+                break
+            print('Thinking.')
+            sleep(1)
+            print('Thinking..')
+            sleep(1)
+            print('Thinking...\n')
+            sleep(1)
+            if dealer_up_card_value >= 7 and 12 <= hand_value <= 16:
                 shouldHit = True
-            elif 1 < dealer_up_card < 4 and hand_value == 12:
+            elif 1 < dealer_up_card_value < 4 and hand_value == 12:
                 shouldHit = True
-            elif dealer_up_card > 9 and hand_value == 10:
+            elif dealer_up_card_value > 9 and hand_value == 10:
                 shouldHit = True
-            elif dealer_up_card == 2 or dealer_up_card >= 7 and hand_value == 9:
+            elif dealer_up_card_value == 2 or dealer_up_card_value >= 7 and hand_value == 9:
                 shouldHit = True
             elif hand_value == 8:
                 shouldHit = True
 
             if shouldHit:
                 dealt_card = deck.deal_card()
-                current_player.add_card(dealt_card)
-                print(f'{current_player.player_name} Hit\nThey received a {dealt_card.show_card()}\n')
+                player.hand.add_card(dealt_card)
+                print(f'{player.player_name} Hit\nThey received a {dealt_card.show_card()}\n')
 
             else:
-                print(f'{current_player.player_name} Stood\n')
+                print(f'{player.player_name} Stood\n')
                 break
         
         # Dealer Turn
         else:
-            print(f'{dealer.show_hand()}\nValue: {dealer.count_hand()}') 
-            dealer_hand_value = dealer.count_hand()
+            dealer_hand_value = player.hand.count_hand()            
+            print(f'{player.hand.show_hand()}\nValue: {dealer_hand_value}') 
             
             if dealer_hand_value > 21:
                 print('The dealer busted!')
@@ -127,11 +138,11 @@ while turn < 6:
 
             elif dealer_hand_value < 17:
                 dealt_card = deck.deal_card()
-                dealer.add_card(dealt_card)
-                print(f'The dealer hit\nValue: {dealer.count_hand()}\n They got a {dealt_card.show_card()}')
+                player.hand.add_card(dealt_card)
+                print(f'The dealer hit\nThey got a {dealt_card.show_card()}\nValue: {player.hand.count_hand()}')
             
             else:
-                print(f'The dealer stood with a hand value of {dealer.count_hand()}\n')
+                print(f'The dealer stood with a hand value of {player.hand.count_hand()}\n')
                 break
         
             
@@ -139,5 +150,7 @@ while turn < 6:
             new_deck = createNewDeck()
             deck.append_deck(new_deck.cards)
 
-    turn += 1
+
+for player in table:
+    player.hand.clear_hand()
 

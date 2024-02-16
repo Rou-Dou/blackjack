@@ -65,16 +65,23 @@ class Hand:
             hand_str += (f'{card_position}: {card.show_card()}\n')
             card_position += 1
         return hand_str
+    
+    def get_dealer_up_card(self) -> Card:
+        return self.hand[1]
+    
+    def clear_hand(self) -> None:
+        self.hand.clear()
+            
 
 class Player:
     def __init__(self, type:str, player_name:str, money:int, hand:Hand) -> None:
         self.type:str = type
         self.player_name:str = player_name
-        self.money:int = money 
+        self.money:int = money
         self.hand:Hand = hand
     
-    def get_player_hand(self, player_id:str) -> str:
-        return f"{self.player_name}'s {self.hand.show_hand()}"
+    def get_player_hand(self) -> str:
+        return f"{self.hand.show_hand()}"
 
 class Deck:
     def __init__(self) -> None:

@@ -118,15 +118,18 @@ def cut_deck(deck:list[Card]) -> DeckHalves:
     left_half:list[Card] = deck[:deck_cut]
     right_half:list[Card] = deck[deck_cut:]
 
-
     dh = DeckHalves(left_half, right_half)
 
     return dh
 
-def createPlayer(player_dictionary:dict, player_type, player_name:str, money:int) -> None:
+def createPlayer(player_dictionary:dict, player_type, player_name:str, money:int) -> str:
     character_id:str = uuid.uuid4().hex
     new_player = Player(player_type, player_name, money, Hand())
-    player_dictionary[player_type].append(new_player)
+    if player_type != 'player':
+        player_dictionary[player_type].append(new_player)
+    else:
+        player_dictionary[player_type][character_id] = new_player
+    return character_id
     
 def getSeatPosition(seat_positions:list[int]) -> int:
     return seat_positions.pop(randint(0, len(seat_positions) - 1))
@@ -140,22 +143,6 @@ def dealCards(deck:Deck, num_players:int, players:list[Player]) -> None:
         for player in players:
             player.hand.add_card(deck.deal_card())
         deal_card += 1
-    
-# def hit_stand(player_hand) -> Hand:
-
-
-
-# def count_hand(hand):
-#     current_sum = 0
-#     for i in hand:
-#         current_sum += card_values[i]
-#     return current_sum
-
-# def has_ace(hand):
-#     for i in hand:
-#         if i.find('Ace'):
-#             return True
-#     return False
 
 def hasNumbers(player_name:str) -> bool:
     for char in player_name:
