@@ -1,6 +1,30 @@
 from random import randint, choice
 from classes import *
 import uuid
+import json
+
+def init_game():
+
+    txt_file = open('player_dictionary.json', 'r')
+    player_dictionary:dict = json.load(txt_file)
+    txt_file.close()
+
+    # generate cpu and dealer on first launch
+    if len(player_dictionary['cpu']) == 0 or len(player_dictionary['dealer']) == 0:
+        bot_txt = open('bot_names.txt', 'r')
+        bot_names = []
+
+        for line in bot_txt:
+            bot_names.append(line.strip())
+
+        while len(bot_names) > 0:
+            createPlayer(player_dictionary, 'cpu', bot_names.pop(0), 100)
+
+        createPlayer(player_dictionary, 'dealer', 'Dealer', 10000000)
+
+        bot_txt.close()
+
+    return player_dictionary
 
 def shuffle_deck(deck:list[Card], num_shuffles:int) -> list[Card]:
     shuffle_count: int = 1
@@ -122,14 +146,11 @@ def cut_deck(deck:list[Card]) -> DeckHalves:
 
     return dh
 
-def createPlayer(player_dictionary:dict, player_type, player_name:str, money:int) -> str:
+def createPlayer(player_dictionary:dict, player_type, player_name:str, money:int) -> Player:
     character_id:str = uuid.uuid4().hex
     new_player = Player(player_type, player_name, money, Hand())
-    if player_type != 'player':
-        player_dictionary[player_type].append(new_player)
-    else:
-        player_dictionary[player_type][character_id] = new_player
-    return character_id
+    player_dictionary[player_type].append(new_player.toJSON())
+    return new_player
     
 def getSeatPosition(seat_positions:list[int]) -> int:
     return seat_positions.pop(randint(0, len(seat_positions) - 1))

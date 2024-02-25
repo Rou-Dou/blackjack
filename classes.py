@@ -35,14 +35,14 @@ class Card:
 
 class Hand:
     def __init__(self) -> None:
-        self.hand:list[Card] = [] #hand is type list with object
+        self.cards:list[Card] = [] #hand is type list with object
 
     def add_card(self, card:Card) -> None:
-        self.hand.append(card)
+        self.cards.append(card)
 
     def count_hand(self) -> int:
         hand_value:int = 0
-        for card in self.hand:
+        for card in self.cards:
             hand_value += card.value
     
         if hand_value > 21:
@@ -53,7 +53,7 @@ class Hand:
         return hand_value
         
     def has_ace(self) -> bool:
-        for card in self.hand:
+        for card in self.cards:
             if card.face == 'Ace':
                 return True
         return False
@@ -61,17 +61,16 @@ class Hand:
     def show_hand(self) -> str:
         card_position:int = 1
         hand_str:str = ''
-        for card in self.hand:
+        for card in self.cards:
             hand_str += (f'{card_position}: {card.show_card()}\n')
             card_position += 1
         return hand_str
     
     def get_dealer_up_card(self) -> Card:
-        return self.hand[1]
+        return self.cards[1]
     
     def clear_hand(self) -> None:
-        self.hand.clear()
-            
+        self.cards.clear()
 
 class Player:
     def __init__(self, type:str, player_name:str, money:int, hand:Hand) -> None:
@@ -82,6 +81,14 @@ class Player:
     
     def get_player_hand(self) -> str:
         return f"{self.hand.show_hand()}"
+    
+    def toJSON(self) -> dict:
+        playerDict:dict = {}
+        playerDict["player_name"] = self.player_name
+        playerDict["money"] = self.money
+        return playerDict
+
+       
 
 class Deck:
     def __init__(self) -> None:
