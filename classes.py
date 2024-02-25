@@ -87,7 +87,12 @@ class Player:
         playerDict["player_name"] = self.player_name
         playerDict["money"] = self.money
         return playerDict
+    
+    def makeBet(self, bet:int) -> None:
+        self.bet = bet
 
+    def setStatus(self, over:bool) -> None:
+        self.over = over
        
 
 class Deck:

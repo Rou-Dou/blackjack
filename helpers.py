@@ -18,7 +18,7 @@ def init_game():
             bot_names.append(line.strip())
 
         while len(bot_names) > 0:
-            createPlayer(player_dictionary, 'cpu', bot_names.pop(0), 100)
+            createPlayer(player_dictionary, 'cpu', bot_names.pop(0), 2000)
 
         createPlayer(player_dictionary, 'dealer', 'Dealer', 10000000)
 

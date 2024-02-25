@@ -10,6 +10,7 @@ num_turns:int = 4
 deck:Deck = createNewDeck()
 players:list[Player] = []
 table:list[Player] = []
+bet = 0
 
 cpus = len(player_dictionary['cpu'])
 
@@ -26,7 +27,7 @@ while True:
     else:
         break
 
-players.append(createPlayer(player_dictionary, 'player', player_name, 100))
+players.append(createPlayer(player_dictionary, 'player', player_name, 2000))
 
 
 while len(players) < 4:
@@ -39,6 +40,29 @@ for i in range(0,4):
     table.append(players.pop(randint(0,len(players)-1)))
 dealer = player_dictionary['dealer'][0]
 table.append(Player('dealer', dealer['player_name'], dealer['money'], Hand()))
+
+for player in table:
+    if player.type == 'cpu':
+        dice_roll = randint(1,6)
+        re_roll = randint(1,6)
+        matches = 0
+        while re_roll == dice_roll:
+            re_roll = randint(1,6)
+            matches += 1
+        if matches == 0:
+            player.makeBet(randint(10,20))
+        elif matches == 1:
+            player.makeBet(randint(15,25))
+        elif matches == 2:
+            player.makeBet(randint(25,40))
+        elif matches > 2:
+            player.makeBet(randint(40, 100))
+        print(f'{player.player_name} bet {player.bet} chips')
+    
+    if player.type == 'player':
+        bet = int(input('Make a bet, the minimum is 10: '))
+        player.makeBet(bet)
+        print(f'You bet {player.bet} chips')
 
 dealCards(deck, 5, table)
 
@@ -63,12 +87,15 @@ for player in table:
 
                 if player.hand.count_hand() > 21:
                     print(f'You busted!')
+                    player.money -= player.bet
+                    player.over = True
                     break
             
                 print(f'{player.get_player_hand()} value: {player.hand.count_hand()}\n')
 
             elif player_hs.lower() == 'stand':
-                print(f'You stood with a hand of:\n {player.get_player_hand()} with a value of {player.hand.count_hand()}\n')
+                print(f'You stood with a hand of:\n{player.get_player_hand()} with a value of {player.hand.count_hand()}\n')
+                player.over = False
                 break
             
         # CPU turn
@@ -81,6 +108,8 @@ for player in table:
 
             if hand_value > 21:
                 print(f'{player.player_name} Busted!\n')
+                player.money -= player.bet
+                player.over = True
                 break
             print('Thinking.')
             sleep(1)
@@ -106,6 +135,7 @@ for player in table:
 
             else:
                 print(f'{player.player_name} Stood\n')
+                player.over = False
                 break
         
         # Dealer Turn
@@ -115,6 +145,7 @@ for player in table:
             
             if dealer_hand_value > 21:
                 print('The dealer busted!')
+                player.over = True
                 break
 
             elif dealer_hand_value < 17:
@@ -124,6 +155,7 @@ for player in table:
             
             else:
                 print(f'The dealer stood with a hand value of {player.hand.count_hand()}\n')
+                player.over = False
                 break
         
             
@@ -132,6 +164,36 @@ for player in table:
             deck.append_deck(new_deck.cards)
 
 
+dealer_info = table.pop(4)
+
 for player in table:
+    if dealer_info.over == True:
+        if player.over == False:
+            player.money += round(player.bet * 1.5)
+
+    else:
+        if player.hand.count_hand() > dealer_hand_value and player.over == False:
+            player.money += round(player.bet * 1.5)
+        elif player.hand.count_hand() < dealer_hand_value and player.over == False:
+            player.money -= round(player.bet)
+        print(f"{player.player_name} has {player.money} chips")
+
+# reset game
+for player in table:
+    i = 0
     player.hand.clear_hand()
+    player.bet = 0
+    rand = randint(1,100)
+    if player.money < 500 or player.over == True:
+        player.over = False
+        if rand > 80:
+            players.pop(i)  
+        else:
+            i += 1
+
+
+players_to_replace = 4 - len(players)
+
+
+
 
