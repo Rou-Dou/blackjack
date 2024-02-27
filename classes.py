@@ -72,6 +72,10 @@ class Hand:
     def clear_hand(self) -> None:
         self.cards.clear()
 
+class Table:
+    def __init__(self) -> None:
+        self.table_seat:list[Player] = []
+
 class Player:
     def __init__(self, type:str, player_name:str, money:int, hand:Hand) -> None:
         self.type:str = type
