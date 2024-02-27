@@ -6,11 +6,13 @@ from time import sleep
 player_dictionary = init_game()
 
 turn:int = 1
+bet:int = 0
 num_turns:int = 4
 deck:Deck = createNewDeck()
-players:list[Player] = []
-table:list[Player] = []
-bet = 0
+table_1 = Table()
+table_2 = Table()
+table_3 = Table()
+table_4 = Table()
 
 cpus = len(player_dictionary['cpu'])
 dealer = createPlayer(player_dictionary, 'dealer', player_dictionary['dealer'][0]["player_name"], player_dictionary['dealer'][0]['money'])
@@ -28,22 +30,31 @@ while True:
     else:
         break
 
-selected_profile = players.append(createPlayer(player_dictionary, 'player', player_name, 2000))
-table_1_players = 4
+selected_profile = createPlayer(player_dictionary, 'player', player_name, 2000)
+populate_table(table_1, player_dictionary)
+
+available_seats = table_1.getOpenSeats()
+print(available_seats)
+
+print(f'There are {len(available_seats)} seat(s) available:\n')
+
+seat_num = 1
+for seat in available_seats:
+    print(f'{seat_num-1}: seat {seat + 1}')
+    seat_num += 1
 
 while True:
-    while len(players) < 10:
-        selected_cpu = player_dictionary['cpu'][randint(0, cpus - 1)]
-        if not selected_cpu in players:
-            players.append(Player('cpu', selected_cpu["player_name"], selected_cpu["money"], Hand()))
-    #assign seats
-    while len(table) < table_1_players:
-        table.append(players.pop(randint(0,len(players)-1)))
-    
-    table.append(dealer)
+    seat_selected = int(input('Which seat would you like to sit at?: '))
+    if seat_selected < len(available_seats) and seat_selected > 0:
+        table_1.table_seats[available_seats[seat_selected]] = selected_profile
+        break
 
-    for player in table:
-        if player.type == 'cpu':
+while True:
+    for player in table_1.table_seats:
+        if player.type == '':
+            continue
+
+        elif player.type == 'cpu':
             dice_roll = randint(1,6)
             re_roll = randint(1,6)
             matches = 0

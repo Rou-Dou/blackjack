@@ -74,7 +74,17 @@ class Hand:
 
 class Table:
     def __init__(self) -> None:
-        self.table_seat:list[Player] = []
+        self.table_seats:list[Player] = []
+
+    def getOpenSeats(self) -> list[int]:
+        open_seat_indexes:list[int] = []
+        i:int = 0
+        for player in self.table_seats:
+            if player.player_name == '':
+                open_seat_indexes.append(i)
+            i += 1
+        return open_seat_indexes
+
 
 class Player:
     def __init__(self, type:str, player_name:str, money:int, hand:Hand) -> None:

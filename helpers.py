@@ -26,6 +26,27 @@ def init_game():
 
     return player_dictionary
 
+def populate_table(table:Table, player_dictionary:dict) -> None:
+    empty_player:Player = Player('', '', 0, Hand())
+    players:list[Player] = []
+    dealer = player_dictionary['dealer'][0]
+    rand_num:int = randint(1,100)
+    while len(players) < 10:
+        selected_player = (player_dictionary['cpu'][randint(0, len(player_dictionary) - 1)])
+        players.append(Player('cpu', selected_player["player_name"], selected_player["money"], Hand()))
+    
+    while len(table.table_seats) < 4:
+        rand_num = randint(1,100)
+        if rand_num > 50:
+            table.table_seats.append(empty_player)
+        else:
+            table.table_seats.append(players[randint(0, len(players) - 1)])
+    table.table_seats.append(Player('dealer', dealer['player_name'], dealer['money'], Hand()))
+    
+            
+
+
+
 def shuffle_deck(deck:list[Card], num_shuffles:int) -> list[Card]:
     shuffle_count: int = 1
     current_shuffle:list[Card] = deck
