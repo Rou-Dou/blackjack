@@ -32,20 +32,22 @@ def populate_table(table:Table, player_dictionary:dict) -> None:
     dealer = player_dictionary['dealer'][0]
     rand_num:int = randint(1,100)
     while len(players) < 10:
-        selected_player = (player_dictionary['cpu'][randint(0, len(player_dictionary) - 1)])
-        players.append(Player('cpu', selected_player["player_name"], selected_player["money"], Hand()))
+        repeat:bool = False
+        selected_player = (player_dictionary['cpu'][randint(0, len(player_dictionary['cpu']) - 1)])
+        for player in players:
+            if player.player_name == selected_player['player_name']:
+                repeat = True
+
+        if not repeat:
+            players.append(Player('cpu', selected_player["player_name"], selected_player["money"], Hand()))
     
     while len(table.table_seats) < 4:
         rand_num = randint(1,100)
         if rand_num > 50:
             table.table_seats.append(empty_player)
         else:
-            table.table_seats.append(players[randint(0, len(players) - 1)])
+            table.table_seats.append(players.pop(randint(0, len(players) - 1)))
     table.table_seats.append(Player('dealer', dealer['player_name'], dealer['money'], Hand()))
-    
-            
-
-
 
 def shuffle_deck(deck:list[Card], num_shuffles:int) -> list[Card]:
     shuffle_count: int = 1
@@ -176,13 +178,15 @@ def createPlayer(player_dictionary:dict, player_type, player_name:str, money:int
 def getSeatPosition(seat_positions:list[int]) -> int:
     return seat_positions.pop(randint(0, len(seat_positions) - 1))
 
-def dealCards(deck:Deck, num_players:int, players:list[Player]) -> None:
+def dealCards(deck:Deck, players:list[Player]) -> None:
     # burn a card
     deck.burn_card()
     
     deal_card:int = 1
     while deal_card < 3:
         for player in players:
+            if player.type == '':
+                continue
             player.hand.add_card(deck.deal_card())
         deal_card += 1
 
@@ -191,3 +195,17 @@ def hasNumbers(player_name:str) -> bool:
         if not char.lower() in 'abcdefghijklmnopqrstuvwxyz':
             return True
     return False
+
+def resetTable(table:Table, dictionary:dict) -> None:
+    i = 0
+    for player in table.table_seats:
+        player.hand.clear_hand()
+        player.bet = 0
+        rand = randint(1,100)
+        if (player.money < 500 or player.over == True) and player.type != 'dealer':
+            player.over = False
+            if rand > 80:
+                table.table_seats.pop(i)
+                continue
+        i += 1
+    populate_table(table, dictionary)
