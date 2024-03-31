@@ -23,6 +23,18 @@ class Suits(Enum):
     Diamonds = 4
 
 
+class Casino:
+    def __init__(self, tables:list) -> None:
+        self.tables:list[Table] = tables
+    
+    def getTable(self, table_number:int):
+        return self.tables[table_number - 1]
+    
+    def getTables(self) -> list:
+        return self.tables
+        
+
+
 class Card:
     def __init__(self, face:str, suit:str, value:int) -> None:
         self.face:str = face #face is type string
@@ -84,6 +96,13 @@ class Table:
                 open_seat_indexes.append(i)
             i += 1
         return open_seat_indexes
+    
+    def getTablePlayers(self) -> None:
+        player_names:list[str] = []
+        for player in self.table_seats:
+            if player.type != '' and player.type != 'dealer':
+                print(f'{player.player_name}')
+        print('')
 
 
 class Player:

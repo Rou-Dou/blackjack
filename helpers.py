@@ -26,6 +26,24 @@ def init_game():
 
     return player_dictionary
 
+def player_bet_input(player:Player) -> int:
+    bet_string:str = 'please enter a bet: '
+    
+    while True:
+        player_bet:str = input(bet_string)
+        for char in player_bet:
+            if char not in '1234567890':
+                bet_string = 'Your bet must be a whole number: '
+                break
+        
+
+        if int(player_bet) > player.money:
+            bet_string = f'You cannot bet more money than you have. You currently have {player.money} dollars: ' 
+            continue
+
+        return int(player_bet)
+
+
 def populate_table(table:Table, player_dictionary:dict) -> None:
     empty_player:Player = Player('', '', 0, Hand())
     players:list[Player] = []
@@ -33,7 +51,7 @@ def populate_table(table:Table, player_dictionary:dict) -> None:
     rand_num:int = randint(1,100)
     while len(players) < 10:
         repeat:bool = False
-        selected_player = (player_dictionary['cpu'][randint(0, len(player_dictionary['cpu']) - 1)])
+        selected_player:dict = (player_dictionary['cpu'][randint(0, len(player_dictionary['cpu']) - 1)])
         for player in players:
             if player.player_name == selected_player['player_name']:
                 repeat = True
@@ -198,14 +216,36 @@ def hasNumbers(player_name:str) -> bool:
 
 def resetTable(table:Table, dictionary:dict) -> None:
     i = 0
+    leaving_players = []
     for player in table.table_seats:
         player.hand.clear_hand()
         player.bet = 0
         rand = randint(1,100)
-        if (player.money < 500 or player.over == True) and player.type != 'dealer':
+        if (player.money < 500 or player.over == True) and (player.type != 'dealer' and player.type != 'player'):
             player.over = False
             if rand > 80:
-                table.table_seats.pop(i)
+                leaving_players.append(i)
                 continue
         i += 1
+    
+    #remove players who left the table
+    for index in leaving_players:
+        table.table_seats.pop(index)
+
     populate_table(table, dictionary)
+
+def checkPlayerBust(player:Player) -> bool:
+    overMessage:str = ''
+
+    if player.type == 'player':
+        overMessage = 'You busted!'
+    else:
+        overMessage = f'{player.player_name} busted!'
+
+    if player.hand.count_hand() > 21:
+        print(overMessage)
+        player.money -= player.bet
+        player.setStatus(True)
+        return True
+    return False
+    
