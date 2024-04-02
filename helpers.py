@@ -44,7 +44,7 @@ def player_bet_input(player:Player) -> int:
         return int(player_bet)
 
 
-def populate_table(table:Table, player_dictionary:dict) -> None:
+def populate_table(table:Table, player_dictionary:dict) -> Table:
     empty_player:Player = Player('', '', 0, Hand())
     players:list[Player] = []
     dealer = player_dictionary['dealer'][0]
@@ -66,6 +66,8 @@ def populate_table(table:Table, player_dictionary:dict) -> None:
         else:
             table.table_seats.append(players.pop(randint(0, len(players) - 1)))
     table.table_seats.append(Player('dealer', dealer['player_name'], dealer['money'], Hand()))
+    
+    return table
 
 def shuffle_deck(deck:list[Card], num_shuffles:int) -> list[Card]:
     shuffle_count: int = 1

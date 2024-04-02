@@ -5,13 +5,11 @@ from time import sleep
 
 player_dictionary = init_game()
 
+main_casino = Casino()
+num_tables = 4
 bet:int = 0
 deck:Deck = createNewDeck()
-table_1:Table = Table()
-table_2:Table = Table()
-table_3:Table = Table()
-table_4:Table = Table()
-
+    
 dealer:Player = createPlayer(player_dictionary, 'dealer', player_dictionary['dealer'][0]["player_name"], player_dictionary['dealer'][0]['money'])
 
 # create player character
@@ -29,14 +27,29 @@ while True:
 
 selected_profile:Player = createPlayer(player_dictionary, 'player', player_name, 2000)
 
-populate_table(table_1, player_dictionary)
-populate_table(table_2, player_dictionary)
+# Populate the tables in the casino with players
+for i in range(0, num_tables):
+    populated_table:Table = populate_table(Table(), player_dictionary)
+    if populated_table.getNumOpenSeats() > 0:
+        main_casino.addTable(populated_table)
 
-available_seats:list[int] = table_1.getOpenSeats()
+iterator:int = 1
 
-print(f'There are {len(available_seats)} seat(s) available:\n')
-print('currently at the table:\n')
-table_1.getTablePlayers()
+for table in main_casino.tables:
+    print(f'There are {table.getNumOpenSeats()} seat(s) available at table {iterator}:\n')
+    print(f'currently at table {iterator}:\n')
+    table.getTablePlayers()
+    iterator += 1
+
+while True:
+    table_number:int = int(input('Which table would you like to check out? '))
+    
+    if table_number <= len(main_casino.tables) and table_number > 0 :
+        selected_table  = main_casino.getTable(table_number)
+        break
+
+available_seats = selected_table.getOpenSeats()
+
 
 seat_num:int = 1
 for seat in available_seats:
@@ -47,11 +60,11 @@ while True:
     seat_selected:int = int(input('Which seat would you like to sit at?: '))
 
     if seat_selected < len(available_seats) and seat_selected > -1:
-        table_1.table_seats[available_seats[seat_selected]] = selected_profile
+        selected_table.table_seats[available_seats[seat_selected]] = selected_profile
         break
 
 while True:
-    for player in table_1.table_seats:
+    for player in selected_table.table_seats:
         if player.type == '':
             continue
 
@@ -77,7 +90,7 @@ while True:
             player.makeBet(bet)
             print(f'You bet {player.bet} chips')
 
-    table = table_1.table_seats
+    table = selected_table.table_seats
 
     dealCards(deck, table)
 
@@ -189,7 +202,7 @@ while True:
                 new_deck = createNewDeck()
                 deck.append_deck(new_deck.cards)
 
-    dealer_info:Player = table_1.table_seats.pop(4)
+    dealer_info:Player = selected_table.table_seats.pop(4)
 
     for player in table:
         if player.type == '' or player.type == 'dealer':
@@ -206,7 +219,7 @@ while True:
 
     # reset game
     print()
-    resetTable(table_1, player_dictionary)
+    resetTable(selected_table, player_dictionary)
 
     # ask for quit
     play_again:str = ''

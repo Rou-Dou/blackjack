@@ -22,19 +22,6 @@ class Suits(Enum):
     Spades = 3
     Diamonds = 4
 
-
-class Casino:
-    def __init__(self, tables:list) -> None:
-        self.tables:list[Table] = tables
-    
-    def getTable(self, table_number:int):
-        return self.tables[table_number - 1]
-    
-    def getTables(self) -> list:
-        return self.tables
-        
-
-
 class Card:
     def __init__(self, face:str, suit:str, value:int) -> None:
         self.face:str = face #face is type string
@@ -102,7 +89,15 @@ class Table:
         for player in self.table_seats:
             if player.type != '' and player.type != 'dealer':
                 print(f'{player.player_name}')
-        print('')
+        print()
+
+    def getNumOpenSeats(self) -> int:
+        open_seat_count:int = 0
+        for player in self.table_seats:
+            if player.player_name == '':
+                open_seat_count += 1
+        return open_seat_count
+
 
 
 class Player:
@@ -154,3 +149,16 @@ class DeckHalves:
     def __init__(self,left_half:list[Card], right_half:list[Card]) -> None:
         self.left_half:list[Card] = left_half 
         self.right_half:list[Card] = right_half
+
+class Casino:
+    def __init__(self) -> None:
+        self.tables:list[Table] = []
+    
+    def getTable(self, table_number:int) -> Table:
+        return self.tables[table_number - 1]
+    
+    def getTables(self) -> list:
+        return self.tables
+    
+    def addTable(self, table) -> None:
+        self.tables.append(table)
