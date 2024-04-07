@@ -38,7 +38,7 @@ iterator:int = 1
 for table in main_casino.tables:
     print(f'There are {table.getNumOpenSeats()} seat(s) available at table {iterator}:\n')
     print(f'currently at table {iterator}:\n')
-    table.getTablePlayers()
+    table.printTablePlayers()
     iterator += 1
 
 while True:
@@ -49,7 +49,6 @@ while True:
         break
 
 available_seats = selected_table.getOpenSeats()
-
 
 seat_num:int = 1
 for seat in available_seats:
@@ -92,9 +91,11 @@ while True:
 
     table = selected_table.table_seats
 
+    for player in table:
+        player.createHand()
     dealCards(deck, table)
 
-    dealer_up_card = table[4].hand.get_dealer_up_card()
+    dealer_up_card = table[4].hands[0].get_dealer_up_card()
     dealer_up_card_value = dealer_up_card.value
 
     print(f"The dealer has a {dealer_up_card.show_card()}\n")
@@ -103,117 +104,141 @@ while True:
         if player.type == '':
             continue
         print(f"{player.player_name}'s turn: \n")
-        while True:
-            # first_player turn
-            if player.type == 'player':
-                print(player.hand.show_hand())
-                print(f'Current hand value is {player.hand.count_hand()}\n')
-
-                player_hs:str = input('What would you like to do? (hit/stand/double down/split): ')
-
-                if player_hs.lower() == 'double down' or player_hs.lower() == 'doubledown':
-                    player.bet = player.bet*2
-                    print(f'Your current bet is now {player.bet} chips')
-                    dealt_card = deck.deal_card()
-                    player.hand.add_card(dealt_card)
-                    print(f'you got a {dealt_card.show_card()}')
-                    checkPlayerBust(player)
-                    print(f'{player.get_player_hand()} value: {player.hand.count_hand()}\n')
-                    sleep(1)
-                    break
-
-                elif player_hs.lower() == 'hit':
-                    dealt_card = deck.deal_card()
-                    player.hand.add_card(dealt_card)
-                    print(f'you got a {dealt_card.show_card()}')
-                    print(f'{player.get_player_hand()} value: {player.hand.count_hand()}\n')
-                                        
-                    if checkPlayerBust(player):
+        for hand in player.hands:
+            while True:
+                # first_player turn
+                if player.type == 'player':
+                    if hand.count_hand() == 21:
+                        if len(hand.cards) == 2:
+                            print('Blackjack!')
+                            sleep(1)
+                        else:
+                            print('You got 21')
+                            sleep(1)
                         break
 
-                elif player_hs.lower() == 'stand':
-                    print(f'You stood with a hand of:\n{player.get_player_hand()} with a value of {player.hand.count_hand()}\n')
-                    player.setStatus(False)
-                    break
+                    print(hand.print_hand())
+                    print(f'Current hand value is {hand.count_hand()}\n')
+
+                    player_hs:str = input('What would you like to do? (hit/stand/double down/split): ').lower()
+
+                    if player_hs == 'double down' or player_hs.lower() == 'doubledown':
+                        player.bet = player.bet*2
+                        print(f'Your current bet is now {player.bet} chips')
+                        dealt_card = deck.deal_card()
+                        hand.add_card(dealt_card)
+                        print(f'you got a {dealt_card.show_card()}')
+                        checkPlayerBust(player)
+                        print(f'{player.print_player_hand()} value: {hand.count_hand()}\n')
+                        sleep(1)
+                        break
+
+                    elif player_hs == 'split':
+                        if len(hand.cards) == 2:
+                            if hand.cards[0].face == hand.cards[1].face:
+                                new_hand = Hand()
+                                new_hand.add_card(hand.cards.pop(1))
+                                player.hands.append(new_hand)
+                                
+
+                    elif player_hs == 'hit':
+                        dealt_card = deck.deal_card()
+                        hand.add_card(dealt_card)
+                        print(f'you got a {dealt_card.show_card()}')
+                        player.print_player_hand()
+                        print(f'value: {hand.count_hand()}\n')
+                                            
+                        if checkPlayerBust(player):
+                            break
+
+                    elif player_hs == 'stand':
+                        print(f'You stood with a hand of: ')
+                        player.print_player_hand()
+                        print(f'with a value of {hand.count_hand()}\n')
+                        player.setStatus(False)
+                        break
 
                 
-            # CPU turn
-            elif player.type == 'cpu':
-                print(f'{player.hand.show_hand()} value: {player.hand.count_hand()}\n')
+                # CPU turn
+                elif player.type == 'cpu':
+                    hand.print_hand()
+                    print(f'value: {hand.count_hand()}\n')
+                    
+                    shouldHit:bool = False
+
+                    hand_value = hand.count_hand()
+
+                    if hand_value > 21:
+                        print(f'{player.player_name} Busted!\n')
+                        player.money -= player.bet
+                        player.setStatus(True)
+                        break
+                    print('Thinking.')
+                    sleep(1)
+                    print('Thinking..')
+                    sleep(1)
+                    print('Thinking...\n')
+                    sleep(1)
+                    if dealer_up_card_value >= 7 and 12 <= hand_value <= 16:
+                        shouldHit = True
+                    elif 1 < dealer_up_card_value < 4 and hand_value == 12:
+                        shouldHit = True
+                    elif dealer_up_card_value > 9 and hand_value == 10:
+                        shouldHit = True
+                    elif dealer_up_card_value == 2 or dealer_up_card_value >= 7 and hand_value == 9:
+                        shouldHit = True
+                    elif hand_value == 8:
+                        shouldHit = True
+
+                    if shouldHit:
+                        dealt_card = deck.deal_card()
+                        hand.add_card(dealt_card)
+                        print(f'{player.player_name} Hit\nThey received a {dealt_card.show_card()}\n')
+
+                    else:
+                        print(f'{player.player_name} Stood\n')
+                        player.setStatus(False)
+                        break
                 
-                shouldHit:bool = False
-
-                hand_value = player.hand.count_hand()
-
-                if hand_value > 21:
-                    print(f'{player.player_name} Busted!\n')
-                    player.money -= player.bet
-                    player.setStatus(True)
-                    break
-                print('Thinking.')
-                sleep(1)
-                print('Thinking..')
-                sleep(1)
-                print('Thinking...\n')
-                sleep(1)
-                if dealer_up_card_value >= 7 and 12 <= hand_value <= 16:
-                    shouldHit = True
-                elif 1 < dealer_up_card_value < 4 and hand_value == 12:
-                    shouldHit = True
-                elif dealer_up_card_value > 9 and hand_value == 10:
-                    shouldHit = True
-                elif dealer_up_card_value == 2 or dealer_up_card_value >= 7 and hand_value == 9:
-                    shouldHit = True
-                elif hand_value == 8:
-                    shouldHit = True
-
-                if shouldHit:
-                    dealt_card = deck.deal_card()
-                    player.hand.add_card(dealt_card)
-                    print(f'{player.player_name} Hit\nThey received a {dealt_card.show_card()}\n')
-
+                # Dealer Turn
                 else:
-                    print(f'{player.player_name} Stood\n')
-                    player.setStatus(False)
-                    break
-            
-            # Dealer Turn
-            else:
-                dealer_hand_value = player.hand.count_hand()            
-                print(f'{player.hand.show_hand()}\nValue: {dealer_hand_value}') 
-                
-                if dealer_hand_value > 21:
-                    print('The dealer busted!')
-                    player.setStatus(True)
-                    break
+                    dealer_hand_value = hand.count_hand()            
+                    print(f'{hand.print_hand()}\nValue: {dealer_hand_value}') 
+                    
+                    if dealer_hand_value > 21:
+                        print('The dealer busted!')
+                        player.setStatus(True)
+                        break
 
-                elif dealer_hand_value < 17:
-                    dealt_card = deck.deal_card()
-                    player.hand.add_card(dealt_card)
-                    print(f'The dealer hit\nThey got a {dealt_card.show_card()}\nValue: {player.hand.count_hand()}')
-                
-                else:
-                    print(f'The dealer stood with a hand value of {player.hand.count_hand()}\n')
-                    player.setStatus(False)
-                    break
+                    elif dealer_hand_value < 17:
+                        dealt_card = deck.deal_card()
+                        hand.add_card(dealt_card)
+                        print(f'The dealer hit\nThey got a {dealt_card.show_card()}\nValue: {hand.count_hand()}')
+                    
+                    else:
+                        print(f'The dealer stood with a hand value of {hand.count_hand()}\n')
+                        player.setStatus(False)
+                        break
             
-                
-            if len(deck.cards) < 10:
-                new_deck = createNewDeck()
-                deck.append_deck(new_deck.cards)
+                    
+                if len(deck.cards) < 10:
+                    new_deck = createNewDeck()
+                    deck.append_deck(new_deck.cards)
 
     dealer_info:Player = selected_table.table_seats.pop(4)
+    dealer_hand_value:int = dealer_info.hands[0].count_hand()
 
     for player in table:
         if player.type == '' or player.type == 'dealer':
             continue
+        
+        for hand in player.hands:
 
-        elif (dealer_info.over == True and player.over == False) or \
-        (player.hand.count_hand() > dealer_hand_value and player.over == False):
-            player.money += round(player.bet * 1.5)
+            if ((dealer_info.over == True and player.over == False) or (hand.count_hand() > dealer_hand_value and player.over == False)):
+                player.money += round(player.bet * 1.5)
 
-        elif player.hand.count_hand() < dealer_hand_value and player.over == False:
-            player.money -= round(player.bet)
+            elif hand.count_hand() < dealer_hand_value and player.over == False:
+                player.money -= round(player.bet)
 
         print(f"{player.player_name} has {player.money} chips")
 

@@ -57,13 +57,13 @@ class Hand:
                 return True
         return False
     
-    def show_hand(self) -> str:
+    def print_hand(self) -> None:
         card_position:int = 1
         hand_str:str = ''
         for card in self.cards:
             hand_str += (f'{card_position}: {card.show_card()}\n')
             card_position += 1
-        return hand_str
+        print(hand_str)
     
     def get_dealer_up_card(self) -> Card:
         return self.cards[1]
@@ -84,7 +84,7 @@ class Table:
             i += 1
         return open_seat_indexes
     
-    def getTablePlayers(self) -> None:
+    def printTablePlayers(self) -> None:
         player_names:list[str] = []
         for player in self.table_seats:
             if player.type != '' and player.type != 'dealer':
@@ -101,14 +101,16 @@ class Table:
 
 
 class Player:
-    def __init__(self, type:str, player_name:str, money:int, hand:Hand) -> None:
+    def __init__(self, type:str, player_name:str, money:int) -> None:
         self.type:str = type
         self.player_name:str = player_name
         self.money:int = money
-        self.hand:Hand = hand
+        self.hands:list[Hand] = []
     
-    def get_player_hand(self) -> str:
-        return f"{self.hand.show_hand()}"
+    def print_player_hand(self) -> None:
+        count:int = 1
+        for hand in self.hands:
+            f"Hand {count}:\n {hand.print_hand()}"
     
     def toJSON(self) -> dict:
         playerDict:dict = {}
@@ -121,6 +123,11 @@ class Player:
 
     def setStatus(self, over:bool) -> None:
         self.over = over
+
+    def createHand(self) -> None:
+        new_hand:Hand = Hand()
+        self.hands.append(new_hand)
+
        
 
 class Deck:

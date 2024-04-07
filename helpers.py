@@ -45,7 +45,7 @@ def player_bet_input(player:Player) -> int:
 
 
 def populate_table(table:Table, player_dictionary:dict) -> Table:
-    empty_player:Player = Player('', '', 0, Hand())
+    empty_player:Player = Player('', '', 0,)
     players:list[Player] = []
     dealer = player_dictionary['dealer'][0]
     rand_num:int = randint(1,100)
@@ -57,7 +57,7 @@ def populate_table(table:Table, player_dictionary:dict) -> Table:
                 repeat = True
 
         if not repeat:
-            players.append(Player('cpu', selected_player["player_name"], selected_player["money"], Hand()))
+            players.append(Player('cpu', selected_player["player_name"], selected_player["money"]))
     
     while len(table.table_seats) < 4:
         rand_num = randint(1,100)
@@ -65,7 +65,7 @@ def populate_table(table:Table, player_dictionary:dict) -> Table:
             table.table_seats.append(empty_player)
         else:
             table.table_seats.append(players.pop(randint(0, len(players) - 1)))
-    table.table_seats.append(Player('dealer', dealer['player_name'], dealer['money'], Hand()))
+    table.table_seats.append(Player('dealer', dealer['player_name'], dealer['money']))
     
     return table
 
@@ -191,7 +191,7 @@ def cut_deck(deck:list[Card]) -> DeckHalves:
 
 def createPlayer(player_dictionary:dict, player_type, player_name:str, money:int) -> Player:
     character_id:str = uuid.uuid4().hex
-    new_player = Player(player_type, player_name, money, Hand())
+    new_player = Player(player_type, player_name, money)
     player_dictionary[player_type].append(new_player.toJSON())
     return new_player
     
@@ -207,7 +207,7 @@ def dealCards(deck:Deck, players:list[Player]) -> None:
         for player in players:
             if player.type == '':
                 continue
-            player.hand.add_card(deck.deal_card())
+            player.hands[0].add_card(deck.deal_card())
         deal_card += 1
 
 def hasNumbers(player_name:str) -> bool:
@@ -220,7 +220,7 @@ def resetTable(table:Table, dictionary:dict) -> None:
     i = 0
     leaving_players = []
     for player in table.table_seats:
-        player.hand.clear_hand()
+        player.hands = []
         player.bet = 0
         rand = randint(1,100)
         if (player.money < 500 or player.over == True) and (player.type != 'dealer' and player.type != 'player'):
@@ -243,11 +243,12 @@ def checkPlayerBust(player:Player) -> bool:
         overMessage = 'You busted!'
     else:
         overMessage = f'{player.player_name} busted!'
-
-    if player.hand.count_hand() > 21:
-        print(overMessage)
-        player.money -= player.bet
-        player.setStatus(True)
-        return True
+    
+    for hand in player.hands:
+        if hand.count_hand() > 21:
+            print(overMessage)
+            player.money -= player.bet
+            player.setStatus(True)
+            return True
     return False
     
