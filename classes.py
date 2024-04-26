@@ -106,6 +106,7 @@ class Player:
         self.player_name:str = player_name
         self.money:int = money
         self.hands:list[Hand] = []
+        self.affinity:int = 0
     
     def print_player_hand(self) -> None:
         count:int = 1
@@ -128,6 +129,11 @@ class Player:
         new_hand:Hand = Hand()
         self.hands.append(new_hand)
 
+    def affinityUp(self) -> None:
+        self.affinity += 1
+    
+    def affinityDown(self) -> None:
+        self.affinity -= 1
        
 
 class Deck:
