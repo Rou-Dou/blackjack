@@ -1,6 +1,7 @@
 import numpy as n
 from classes import Card
 
+
 # determine randomness of shuffle
 def entropy_value(fresh_deck:list[Card], shuffled_deck:list[Card]) -> float:
     distance_array:list[int] = []

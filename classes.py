@@ -1,5 +1,7 @@
 from enum import Enum
 from value_dictionary import *
+from time import sleep
+from typing import Any
 
 class Faces(Enum):
     Ace = 1
@@ -23,10 +25,10 @@ class Suits(Enum):
     Diamonds = 4
 
 class Card:
-    def __init__(self, face:str, suit:str, value:int) -> None:
-        self.face:str = face #face is type string
-        self.suit:str = suit #suit is type string
-        self.value:int = value #value is type int
+    def __init__(self, face: str, suit: str, value: int) -> None:
+        self.face: str = face #face is type string
+        self.suit: str = suit #suit is type string
+        self.value: int = value #value is type int
 
     def show_card(self) -> str:
         return f'{self.face} of {self.suit}'
@@ -34,13 +36,13 @@ class Card:
 
 class Hand:
     def __init__(self) -> None:
-        self.cards:list[Card] = [] #hand is type list with object
+        self.cards: list[Card] = [] #hand is type list with object
 
-    def add_card(self, card:Card) -> None:
+    def add_card(self, card: Card) -> None:
         self.cards.append(card)
 
     def count_hand(self) -> int:
-        hand_value:int = 0
+        hand_value: int = 0
         for card in self.cards:
             hand_value += card.value
     
@@ -58,8 +60,8 @@ class Hand:
         return False
     
     def print_hand(self) -> None:
-        card_position:int = 1
-        hand_str:str = ''
+        card_position: int = 1
+        hand_str: str = ''
         for card in self.cards:
             hand_str += (f'{card_position}: {card.show_card()}\n')
             card_position += 1
@@ -73,11 +75,12 @@ class Hand:
 
 class Table:
     def __init__(self) -> None:
-        self.table_seats:list[Player] = []
+        self.table_seats: list[Player] = []
+        self.minimum_bet: int = 0
 
     def getOpenSeats(self) -> list[int]:
-        open_seat_indexes:list[int] = []
-        i:int = 0
+        open_seat_indexes: list[int] = []
+        i: int = 0
         for player in self.table_seats:
             if player.player_name == '':
                 open_seat_indexes.append(i)
@@ -85,14 +88,13 @@ class Table:
         return open_seat_indexes
     
     def printTablePlayers(self) -> None:
-        player_names:list[str] = []
         for player in self.table_seats:
             if player.type != '' and player.type != 'dealer':
                 print(f'{player.player_name}')
         print()
 
     def getNumOpenSeats(self) -> int:
-        open_seat_count:int = 0
+        open_seat_count: int = 0
         for player in self.table_seats:
             if player.player_name == '':
                 open_seat_count += 1
@@ -101,32 +103,34 @@ class Table:
 
 
 class Player:
-    def __init__(self, type:str, player_name:str, money:int) -> None:
-        self.type:str = type
-        self.player_name:str = player_name
-        self.money:int = money
-        self.hands:list[Hand] = []
-        self.affinity:int = 0
+    def __init__(self, type: str, player_name: str, money: int, affinity: int) -> None:
+        self.type: str = type
+        self.player_name: str = player_name
+        self.money: int = money
+        self.hands: list[Hand] = []
+        self.affinity: int = affinity
     
     def print_player_hand(self) -> None:
-        count:int = 1
+        count: int = 1
         for hand in self.hands:
-            f"Hand {count}:\n {hand.print_hand()}"
+            f"Hand {count}:\n"
+            hand.print_hand()
     
-    def toJSON(self) -> dict:
-        playerDict:dict = {}
+    def toJSON(self) -> dict[str,Any]:
+        playerDict: dict[str, Any] = {}
         playerDict["player_name"] = self.player_name
         playerDict["money"] = self.money
+        playerDict["affinity"] = self.affinity
         return playerDict
     
-    def makeBet(self, bet:int) -> None:
+    def makeBet(self, bet: int) -> None:
         self.bet = bet
 
-    def setStatus(self, over:bool) -> None:
+    def setStatus(self, over: bool) -> None:
         self.over = over
 
     def createHand(self) -> None:
-        new_hand:Hand = Hand()
+        new_hand: Hand = Hand()
         self.hands.append(new_hand)
 
     def affinityUp(self) -> None:
@@ -134,11 +138,43 @@ class Player:
     
     def affinityDown(self) -> None:
         self.affinity -= 1
-       
 
+    def hasTwentyOne(self, hand: Hand) -> bool:
+        print_string: str = ""
+        hand_length = len(hand.cards)
+        has_twenty_one: bool = hand.count_hand() == 21
+
+        # If player has 21 stand automatically
+        if has_twenty_one:
+            self.setStatus(False)
+
+            if hand_length == 2:
+                match self.type:
+                    case 'player':
+                        print_string = "You got blackjack!"
+                    case "cpu":
+                        print_string = f"{self.player_name} got blackjack"
+                    case "dealer":
+                        print_string = "The dealer got blackjack"
+            else:
+                match self.type:
+                    case "player":
+                        print_string = "You got 21!"
+                    case "cpu":
+                        print_string = f"{self.player_name} got 21"
+                    case "dealer":
+                        print_string = "The dealer got 21"
+                
+            print(print_string)
+            return True
+        
+        return False
+        
+
+                
 class Deck:
     def __init__(self) -> None:
-        self.cards:list[Card] = [] #cards is a list of class Card
+        self.cards: list[Card] = [] #cards is a list of class Card
 
     def create_deck(self) -> None:
         for suit in Suits:
@@ -159,19 +195,19 @@ class Deck:
         self.cards = self.cards + deck
 
 class DeckHalves:
-    def __init__(self,left_half:list[Card], right_half:list[Card]) -> None:
-        self.left_half:list[Card] = left_half 
-        self.right_half:list[Card] = right_half
+    def __init__(self,left_half: list[Card], right_half: list[Card]) -> None:
+        self.left_half: list[Card] = left_half 
+        self.right_half: list[Card] = right_half
 
 class Casino:
     def __init__(self) -> None:
-        self.tables:list[Table] = []
+        self.tables: list[Table] = []
     
-    def getTable(self, table_number:int) -> Table:
+    def getTable(self, table_number: int) -> Table:
         return self.tables[table_number - 1]
     
-    def getTables(self) -> list:
+    def getTables(self) -> list[Table]:
         return self.tables
     
-    def addTable(self, table) -> None:
+    def addTable(self, table: Table) -> None:
         self.tables.append(table)
