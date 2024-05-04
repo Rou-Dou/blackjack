@@ -4,7 +4,7 @@ import uuid
 import json
 from typing import Any
 
-def init_game() -> dict[str, Any]:
+def initGame() -> dict[str, Any]:
 
     txt_file = open('player_dictionary.json', 'r')
     player_dictionary: dict[str, Any] = json.load(txt_file)
@@ -42,6 +42,10 @@ def saveGame(player_dictionary: dict[str, Any]) -> None:
     txt_file.close()
 
 def player_bet_input(player: Player) -> int:
+
+    print(f'You have {player.money} chips.')
+    sleep(1)
+
     bet_string: str = 'please enter a bet: '
     
     while True:
@@ -51,7 +55,6 @@ def player_bet_input(player: Player) -> int:
                 bet_string = 'Your bet must be a whole number: '
                 break
         
-
         if int(player_bet) > player.money:
             bet_string = f'You cannot bet more money than you have. You currently have {player.money} dollars: ' 
             continue
@@ -243,7 +246,7 @@ def dealCards(deck: Deck, players: list[Player]) -> None:
         for player in players:
             if player.type == '':
                 continue
-            player.hands[0].add_card(deck.deal_card())
+            deck.deal_card(player.hands[0])
         deal_card += 1
 
 def hasNumbers(player_name: str) -> bool:
@@ -288,3 +291,25 @@ def checkPlayerBust(player: Player) -> bool:
             return True
     return False
     
+def roundBet(bet: int) -> int:
+    mod_value: int = bet % 5
+    if mod_value < 3:
+        return bet - mod_value 
+    else:
+        return bet + (5 - mod_value)
+    
+def typeWriter(string) -> None:
+    build_string: str = ''
+    for count, char in enumerate(string):
+        if count == len(string) - 1:
+            build_string += char
+            print(build_string, end="")
+            print()
+            sleep(0.1)
+        else:
+            build_string += char
+            print(build_string, end="")
+            print("\r", end="")
+            sleep(0.1)
+    sleep(0.5)
+        

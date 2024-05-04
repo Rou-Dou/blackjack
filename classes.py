@@ -124,6 +124,10 @@ class Player:
         return playerDict
     
     def makeBet(self, bet: int) -> None:
+        if bet > self.money:
+            bet = self.money
+            print('All in')
+            sleep(2)
         self.bet = bet
 
     def setStatus(self, over: bool) -> None:
@@ -185,8 +189,11 @@ class Deck:
         for card in self.cards:
             card.show_card()
 
-    def deal_card(self) -> Card:
-        return self.cards.pop(0)
+    def deal_card(self, hand:Hand) -> None:
+        dealt_card: Card = self.cards.pop(0)
+        hand.add_card(dealt_card)
+        print(f'you got a {dealt_card.show_card()}')
+
     
     def burn_card(self) -> None:
         self.cards.pop(0)
