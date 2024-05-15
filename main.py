@@ -5,10 +5,9 @@ import mypy
 from time import sleep
 
 # main globals
-player_dictionary = initGame()
-
-main_casino = Casino()
-num_tables = 4
+player_dictionary: dict[str, Any] = initGame()
+main_casino: Casino = Casino()
+num_tables: int = 4
 bet: int = 0
 deck: Deck = createNewDeck()
 dealer: Player = Player('dealer', player_dictionary['dealer'][0]["player_name"], player_dictionary['dealer'][0]['money'], player_dictionary['dealer'][0]['affinity'])
@@ -22,10 +21,15 @@ while True:
 
     profile_index: str = input('Type the number of the profile you would like to use? Type "new" to create a new profile: ' )
 
+    if (profile_index not in '0123456789' and profile_index != 'new') \
+        or (int(profile_index) > len(player_dictionary['player']) or int(profile_index) < 1):
+        
+        continue
+
     if profile_index == 'new':
         createPlayerCharacter(player_dictionary)
     else:
-        profile_index_int = int(profile_index)
+        profile_index_int: int = int(profile_index)
         break
 
 profile_object = player_dictionary["player"][profile_index_int - 1]
@@ -39,15 +43,18 @@ for i in range(0, num_tables):
 
 # display the current population of tables and the players at them
 for count, table in enumerate(main_casino.tables):
-    print(f'There are {table.getNumOpenSeats()} seat(s) available at table {count}:\n')
-    print(f'currently at table {count+1}:\n')
-    table.printTablePlayers()
+    print()
+    table.printTablePlayers(count)
 
 # prompt for table to sit at
 while True:
-    table_number: int = int(input('Which table would you like to check out? '))
-    
-    if table_number <= len(main_casino.tables) and table_number > 0 :
+    try:
+        table_number: int = int(input('Which table would you like to check out? '))
+    except:
+        print('Please enter a valid number from the provided list')
+        continue
+
+    if table_number <= len(main_casino.tables) and table_number > 0:
         selected_table  = main_casino.getTable(table_number)
         break
 
@@ -56,15 +63,15 @@ available_seats = selected_table.getOpenSeats()
 
 seat_num: int = 1
 for seat in available_seats:
-    print(f'{seat_num-1}: seat {seat + 1}')
+    print(f'{seat_num}: seat {seat + 1}')
     seat_num += 1
 
 # prompt player for preferred seat
 while True:
     seat_selected: int = int(input('Which seat would you like to sit at?: '))
 
-    if seat_selected < len(available_seats) and seat_selected > -1:
-        selected_table.table_seats[available_seats[seat_selected]] = selected_profile
+    if seat_selected <= len(available_seats) and seat_selected > 0:
+        selected_table.table_seats[available_seats[seat_selected-1]] = selected_profile
         break
 
 # Betting loop
@@ -83,13 +90,13 @@ while True:
                 matches += 1
             match matches:
                 case 0:
-                    player.makeBet(roundBet(randint(10,50)))
+                    player.makeBet(randint(10,50))
                 case 1:
-                    player.makeBet(roundBet(randint(50,100)))
+                    player.makeBet(randint(50,100))
                 case 2: 
-                    player.makeBet(roundBet(randint(100,200)))
+                    player.makeBet(randint(100,200))
                 case _:
-                    player.makeBet(roundBet(randint(200, 1000)))
+                    player.makeBet(randint(200, 1000))
             
             print(f'{player.player_name} bet {player.bet} chips')
         
@@ -104,6 +111,7 @@ while True:
     # give each player at the table a hand and deal cards
     for player in table_players:
         player.createHand()
+    
     dealCards(deck, table_players)
 
     # Print dealer information for player
@@ -134,7 +142,7 @@ while True:
 
                     # in the case of double down, the player's bet is doubled and they are dealt a new card
                     # If they bust the hand is resolved right away, otherwise they are forced to stand
-                    if player_hs == 'double down' or player_hs.lower() == 'doubledown':
+                    if player_hs == 'double down' or player_hs == 'doubledown':
                         player.bet = player.bet*2
                         print(f'Your current bet is now {player.bet} chips')
                         deck.deal_card(hand)
@@ -152,16 +160,16 @@ while True:
                                 new_hand = Hand()
                                 new_hand.add_card(hand.cards.pop(1))
                                 player.hands.append(new_hand)
-
-                                deck.deal_card(player.hands[0])
-                                deck.deal_card(player.hands[1])
+                                
+                                for hand in player.hands:
+                                    deck.deal_card(hand)
                                 
                                 
                     # if the player hits, they are dealt a new card and are checked for a bust.
                     elif player_hs == 'hit':
-                        deck.deal_card(hand)
-                        player.print_player_hand()
-                        print(f'value: {hand.count_hand()}\n')
+                        dealt_card: Card = deck.deal_card(hand)
+                        typeWriter(f'The dealer dealt a {dealt_card.face} of {dealt_card.suit}')
+                    
                                             
                         if checkPlayerBust(player):
                             break
@@ -177,21 +185,11 @@ while True:
                 
                 # CPU turn
                 elif player.type == 'cpu':
-                    hand.print_hand()
-                    print(f'value: {hand.count_hand()}\n')
                     shouldHit: bool = False
-                    hand_value = hand.count_hand()
+                    hand_value: int = hand.count_hand()
 
                     if checkPlayerBust(player) or player.hasTwentyOne(hand):
                         break
-
-                    # artificial thinking time
-                    print('Thinking.')
-                    sleep(1)
-                    print('Thinking..')
-                    sleep(1)
-                    print('Thinking...\n')
-                    sleep(1)
 
                     # logic here is based on 'ideal' blackjack play at a basic level
                     # A simple series of dealer/player conditions are considered for when the CPU
@@ -219,7 +217,7 @@ while True:
                 else:
                     dealer_hand_value: int = hand.count_hand()            
                     hand.print_hand()
-                    print(f'\nValue: {dealer_hand_value}') 
+                    print(f'\nValue: {dealer_hand_value}')
 
                     if checkPlayerBust(player) or player.hasTwentyOne(hand):
                         break
@@ -232,14 +230,14 @@ while True:
                         player.setStatus(False)
                         break
 
-                # check if a new deck needs to created and create one if so    
-                if len(deck.cards) < 10:
-                    new_deck = createNewDeck()
-                    deck.append_deck(new_deck.cards)
+            # check if a new deck needs to created and create one if so    
+            if len(deck.cards) < 10:
+                new_deck: Deck = createNewDeck()
+                deck.append_deck(new_deck.cards)
 
     # remove the dealer from the table and store his final hand values
     dealer_info: Player = selected_table.table_seats.pop(4)
-    dealer_hand_value = dealer_info.hands[0].count_hand()
+    dealer_hand_value: int = dealer_info.hands[0].count_hand()
 
     # Payout/loss calculation
     # for each player or CPU type, check a series of conditions and add or subtract chips 
@@ -268,8 +266,8 @@ while True:
 
     # ask for quit
     play_again: str = ''
-    while play_again.lower() != 'no' and play_again != 'yes':
-        play_again = input('Would you like to play another round (yes/no)? ')
+    while play_again != 'no' and play_again != 'yes':
+        play_again = input('Would you like to play another round (yes/no)? ').lower()
     
     if play_again == 'no':
         break

@@ -87,7 +87,9 @@ class Table:
             i += 1
         return open_seat_indexes
     
-    def printTablePlayers(self) -> None:
+    def printTablePlayers(self, table_number) -> None:
+        print(f'There are {self.getNumOpenSeats()} seat(s) available at table {table_number+1}:\n')
+        print(f'People currently at table {table_number+1}:\n')
         for player in self.table_seats:
             if player.type != '' and player.type != 'dealer':
                 print(f'{player.player_name}')
@@ -124,11 +126,19 @@ class Player:
         return playerDict
     
     def makeBet(self, bet: int) -> None:
-        if bet > self.money:
-            bet = self.money
+
+        if self.bet > self.money:
+            self.bet = self.money
             print('All in')
             sleep(2)
-        self.bet = bet
+            return
+
+        if self.type == 'cpu':
+            mod_value: int = bet % 5
+            if mod_value < 3:
+                self.bet = bet - mod_value 
+            else:
+                self.bet = bet + (5 - mod_value)
 
     def setStatus(self, over: bool) -> None:
         self.over = over
@@ -144,7 +154,8 @@ class Player:
         self.affinity -= 1
 
     def hasTwentyOne(self, hand: Hand) -> bool:
-        print_string: str = ""
+        end_string: str = ""
+        player_type_str: str = ""
         hand_length = len(hand.cards)
         has_twenty_one: bool = hand.count_hand() == 21
 
@@ -152,24 +163,20 @@ class Player:
         if has_twenty_one:
             self.setStatus(False)
 
-            if hand_length == 2:
-                match self.type:
-                    case 'player':
-                        print_string = "You got blackjack!"
-                    case "cpu":
-                        print_string = f"{self.player_name} got blackjack"
-                    case "dealer":
-                        print_string = "The dealer got blackjack"
-            else:
-                match self.type:
-                    case "player":
-                        print_string = "You got 21!"
-                    case "cpu":
-                        print_string = f"{self.player_name} got 21"
-                    case "dealer":
-                        print_string = "The dealer got 21"
+            match hand_length:
+                case 2:
+                    end_string = "got blackjack!"
+                case _:
+                    end_string = "got 21!"
+
+            if self.type == 'player':
+                player_type_str = 'You'
+            elif self.type == 'cpu':
+                player_type_str = self.player_name
+            elif self.type == 'dealer':
+                player_type_str = 'The dealer'
                 
-            print(print_string)
+            print(f'{player_type_str} {end_string}')
             return True
         
         return False
@@ -189,10 +196,10 @@ class Deck:
         for card in self.cards:
             card.show_card()
 
-    def deal_card(self, hand:Hand) -> None:
+    def deal_card(self, hand:Hand) -> Card:
         dealt_card: Card = self.cards.pop(0)
         hand.add_card(dealt_card)
-        print(f'you got a {dealt_card.show_card()}')
+        return dealt_card
 
     
     def burn_card(self) -> None:

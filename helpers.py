@@ -291,13 +291,6 @@ def checkPlayerBust(player: Player) -> bool:
             return True
     return False
     
-def roundBet(bet: int) -> int:
-    mod_value: int = bet % 5
-    if mod_value < 3:
-        return bet - mod_value 
-    else:
-        return bet + (5 - mod_value)
-    
 def typeWriter(string) -> None:
     build_string: str = ''
     for count, char in enumerate(string):
@@ -305,11 +298,11 @@ def typeWriter(string) -> None:
             build_string += char
             print(build_string, end="")
             print()
-            sleep(0.1)
+            sleep(0.05)
         else:
             build_string += char
             print(build_string, end="")
             print("\r", end="")
-            sleep(0.1)
+            sleep(0.05)
     sleep(0.5)
         
