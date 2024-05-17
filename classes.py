@@ -127,7 +127,7 @@ class Player:
     
     def makeBet(self, bet: int) -> None:
 
-        if self.bet > self.money:
+        if bet > self.money:
             self.bet = self.money
             print('All in')
             sleep(2)
@@ -139,6 +139,8 @@ class Player:
                 self.bet = bet - mod_value 
             else:
                 self.bet = bet + (5 - mod_value)
+            return
+        self.bet = bet
 
     def setStatus(self, over: bool) -> None:
         self.over = over

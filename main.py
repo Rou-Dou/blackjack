@@ -61,10 +61,8 @@ while True:
 # print seats available at the chose table
 available_seats = selected_table.getOpenSeats()
 
-seat_num: int = 1
 for seat in available_seats:
-    print(f'{seat_num}: seat {seat + 1}')
-    seat_num += 1
+    print(f'{seat + 1}: seat {seat + 1}')
 
 # prompt player for preferred seat
 while True:
@@ -207,9 +205,8 @@ while True:
 
                     if shouldHit:
                         deck.deal_card(hand)
-
+                    # stand
                     else:
-                        print(f'{player.player_name} Stood\n')
                         player.setStatus(False)
                         break
                 
@@ -230,7 +227,7 @@ while True:
                         player.setStatus(False)
                         break
 
-            # check if a new deck needs to created and create one if so    
+            # check if a new deck needs to be created and create one if so    
             if len(deck.cards) < 10:
                 new_deck: Deck = createNewDeck()
                 deck.append_deck(new_deck.cards)
@@ -239,7 +236,7 @@ while True:
     dealer_info: Player = selected_table.table_seats.pop(4)
     dealer_hand_value: int = dealer_info.hands[0].count_hand()
 
-    # Payout/loss calculation
+    #### Payout/loss calculation ####
     # for each player or CPU type, check a series of conditions and add or subtract chips 
     for player in table_players:
         if player.type == '' or player.type == 'dealer':
@@ -249,7 +246,7 @@ while True:
         # otherwise subtract chips. The loss calculations are only if the player has not gone over 21
         # over 21 calculations are calculated at the time of the bust
         for hand in player.hands:
-            if ((dealer_info.over == True and player.over == False) or (hand.count_hand() > dealer_hand_value and player.over == False)):
+            if (player.over == False and (dealer_info.over == True or hand.count_hand() > dealer_hand_value)):
                 player.money += round(player.bet * 1.5)
 
             elif hand.count_hand() < dealer_hand_value and player.over == False:
@@ -267,7 +264,10 @@ while True:
     # ask for quit
     play_again: str = ''
     while play_again != 'no' and play_again != 'yes':
-        play_again = input('Would you like to play another round (yes/no)? ').lower()
+        try:
+            play_again = input('Would you like to play another round (yes/no)? ').lower()
+        except:
+            print('Invalid Input')
     
     if play_again == 'no':
         break
