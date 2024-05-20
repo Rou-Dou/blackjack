@@ -10,7 +10,12 @@ main_casino: Casino = Casino()
 num_tables: int = 4
 bet: int = 0
 deck: Deck = createNewDeck()
-dealer: Player = Player(player_dictionary['dealer'][0]["player_id"], 'dealer', player_dictionary['dealer'][0]["player_name"], player_dictionary['dealer'][0]['money'], player_dictionary['dealer'][0]['affinity'])
+dealer_object: dict[str, Any] = player_dictionary['dealer'][0]
+dealer: Player = Player(dealer_object["player_id"], 
+                        'dealer', 
+                        dealer_object["player_name"], 
+                        dealer_object['money'], 
+                        dealer_object['affinity'])
 
 # Player character select. Print current players and prompt for selection
 # If the player types 'new' create a new character, otherwise
@@ -61,7 +66,8 @@ while True:
 available_seats = selected_table.getOpenSeats()
 
 for seat in available_seats:
-    print(f'{seat + 1}: seat {seat + 1}')
+    seat += 1
+    print(f'{seat}: seat {seat}')
 
 # prompt player for preferred seat
 while True:
@@ -99,7 +105,7 @@ while True:
         
         # Player is prompted to bet here
         elif player.type == 'player':
-            bet = player_bet_input(player)
+            bet: int = player_bet_input(player)
             player.makeBet(bet)
             typeWriter(f'You bet {player.bet} chips')
 
@@ -227,7 +233,7 @@ while True:
                         break
 
             # check if a new deck needs to be created and create one if so    
-            if len(deck.cards) < 10:
+            if len(deck.cards) < 12:
                 new_deck: Deck = createNewDeck()
                 deck.append_deck(new_deck.cards)
 
