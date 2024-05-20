@@ -10,30 +10,29 @@ main_casino: Casino = Casino()
 num_tables: int = 4
 bet: int = 0
 deck: Deck = createNewDeck()
-dealer: Player = Player('dealer', player_dictionary['dealer'][0]["player_name"], player_dictionary['dealer'][0]['money'], player_dictionary['dealer'][0]['affinity'])
+dealer: Player = Player(player_dictionary['dealer'][0]["player_id"], 'dealer', player_dictionary['dealer'][0]["player_name"], player_dictionary['dealer'][0]['money'], player_dictionary['dealer'][0]['affinity'])
 
 # Player character select. Print current players and prompt for selection
 # If the player types 'new' create a new character, otherwise
 # store the selected index value, then create the Player class
 while True:
-    for count, player in enumerate(player_dictionary['player']):
-        print(f'{count+1}: {player["player_name"]}')
+    for count, player in enumerate(player_dictionary['player'], 1):
+        print(f'{count}: {player["player_name"]}')
 
     profile_index: str = input('Type the number of the profile you would like to use? Type "new" to create a new profile: ' )
 
-    if (profile_index not in '0123456789' and profile_index != 'new') \
-        or (int(profile_index) > len(player_dictionary['player']) or int(profile_index) < 1):
-        
-        continue
-
     if profile_index == 'new':
         createPlayerCharacter(player_dictionary)
+
+    elif (profile_index not in '0123456789') or (int(profile_index) > len(player_dictionary['player']) or int(profile_index) < 1):
+        continue
+
     else:
         profile_index_int: int = int(profile_index)
         break
 
 profile_object = player_dictionary["player"][profile_index_int - 1]
-selected_profile = Player('player', profile_object['player_name'], profile_object["money"], profile_object['affinity'])
+selected_profile = Player(profile_object['player_id'], 'player', profile_object['player_name'], profile_object["money"], profile_object['affinity'])
 
 # Populate the tables in the casino with players
 for i in range(0, num_tables):
@@ -271,11 +270,3 @@ while True:
     
     if play_again == 'no':
         break
-    
-
-
-
-
-
-
-

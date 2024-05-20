@@ -1,1 +1,290 @@
-{"cpu": [{"player_name": "Randy", "money": 1964, "affinity": 0}, {"player_name": "John", "money": 1911, "affinity": 0}, {"player_name": "Joe", "money": 1908, "affinity": 0}, {"player_name": "Bobby", "money": 2156, "affinity": 0}, {"player_name": "Jeoffry", "money": 2000, "affinity": 0}, {"player_name": "Jinx", "money": 2225, "affinity": 0}, {"player_name": "Jerome", "money": 2000, "affinity": 0}, {"player_name": "Mark", "money": 2011, "affinity": 0}, {"player_name": "Joseph", "money": 1887, "affinity": 0}, {"player_name": "Luke", "money": 1935, "affinity": 0}, {"player_name": "Paul", "money": 1986, "affinity": 0}, {"player_name": "Peter", "money": 2000, "affinity": 0}, {"player_name": "Mary", "money": 2000, "affinity": 0}, {"player_name": "Joshua", "money": 2000, "affinity": 0}, {"player_name": "Corey", "money": 1960, "affinity": 0}, {"player_name": "Jason", "money": 2000, "affinity": 0}, {"player_name": "Zack", "money": 2000, "affinity": 0}, {"player_name": "Eli", "money": 1679, "affinity": 0}, {"player_name": "Charlotte", "money": 2000, "affinity": 0}, {"player_name": "Michael", "money": 2035, "affinity": 0}, {"player_name": "Jessica", "money": 2000, "affinity": 0}, {"player_name": "Ben", "money": 1833, "affinity": 0}, {"player_name": "Hannah", "money": 2477, "affinity": 0}, {"player_name": "Logan", "money": 2022, "affinity": 0}, {"player_name": "Alex", "money": 2000, "affinity": 0}, {"player_name": "Kate", "money": 2000, "affinity": 0}, {"player_name": "Kiana", "money": 2052, "affinity": 0}, {"player_name": "Matt Jr.", "money": 2105, "affinity": 0}, {"player_name": "Kevin", "money": 1970, "affinity": 0}, {"player_name": "Pedro", "money": 2030, "affinity": 0}, {"player_name": "Frank", "money": 2138, "affinity": 0}, {"player_name": "Mason", "money": 1979, "affinity": 0}, {"player_name": "Julia", "money": 1953, "affinity": 0}, {"player_name": "Carol", "money": 2059, "affinity": 0}, {"player_name": "Denis", "money": 1827, "affinity": 0}, {"player_name": "Emma", "money": 2000, "affinity": 0}, {"player_name": "Devin", "money": 2082, "affinity": 0}, {"player_name": "Devon", "money": 2028, "affinity": 0}, {"player_name": "Fran", "money": 2228, "affinity": 0}, {"player_name": "Grace", "money": 2082, "affinity": 0}, {"player_name": "Alexandra", "money": 2005, "affinity": 0}, {"player_name": "Issac", "money": 2000, "affinity": 0}, {"player_name": "Zeus", "money": 2000, "affinity": 0}, {"player_name": "Liam", "money": 1985, "affinity": 10000}, {"player_name": "Nick", "money": 2495, "affinity": 0}], "player": [{"player_name": "Matt", "money": 29201870977, "affinity": 0}], "dealer": [{"player_name": "Dealer", "money": 10000000, "affinity": 0}]}
+{
+    "player": [
+        {
+            "player_id": "bd4c1c7d4dea42cfa440bb0dd8bcabe5",
+            "player_name": "matt",
+            "money": 1900,
+            "affinity": 0
+        }
+    ],
+    "cpu": [
+        {
+            "player_id": "81853c9110a545b08526084afa667d54",
+            "player_name": "Randy",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "958514b0634a4544be78b7959c7dbe23",
+            "player_name": "John",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "fe26215777b84cf188ac5128a8719e32",
+            "player_name": "Joe",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "258988fefeab4efd9ada48b4d9cf9df9",
+            "player_name": "Bobby",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "35497efabb294246bfaaaf8a83be7552",
+            "player_name": "Jeoffry",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "83fb1042c6e4470bacf00ad175efb300",
+            "player_name": "Jinx",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "c9ec532c99d44a9d842674da3054b80b",
+            "player_name": "Jerome",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "521b1944eeff4c8798e5cd7f46916a69",
+            "player_name": "Mark",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "b1a9d385ee724263a14de535a183fcf5",
+            "player_name": "Joseph",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "8eddbaa5096549608772ccea6f21bcfe",
+            "player_name": "Luke",
+            "money": 1970,
+            "affinity": 0
+        },
+        {
+            "player_id": "b6c6916aeeb14af88dcc0d207925b1fd",
+            "player_name": "Paul",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "1769536b6c3a410d9ae167ad28833d2d",
+            "player_name": "Peter",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "69a53c1f6a274ca689016f94aecf810a",
+            "player_name": "Mary",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "ec0bdfb4a0e94cf78901bcafa320fe3b",
+            "player_name": "Joshua",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "34a763175c2942f68d4ce2d3fda5a162",
+            "player_name": "Corey",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "a6fbc7201e0f45fa858e054a66f06976",
+            "player_name": "Jason",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "0f162024231642d191328735e410fac3",
+            "player_name": "Zack",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "9efb724f178a4326a03c5f35fc780ef4",
+            "player_name": "Eli",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "e84415e149f945eb96f51320a5f13188",
+            "player_name": "Charlotte",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "bda329930a92490a89e24bb6691d9bda",
+            "player_name": "Michael",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "c41c313907ae4adeac639c3480ae24e1",
+            "player_name": "Jessica",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "2589c0f7047c44aba6938cf29137958b",
+            "player_name": "Ben",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "338f0c186c0f479a99062e87f3d42857",
+            "player_name": "Hannah",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "0f7e26a609b04aba92e609539d95a51e",
+            "player_name": "Logan",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "3aeb6e893a13438982e8351d3681716a",
+            "player_name": "Alex",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "c09581aba6b34e02b0f66b5f023edf00",
+            "player_name": "Kate",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "c16bb7727fc1403db1cec795b9ffec32",
+            "player_name": "Kiana",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "d99400bd450144f0acbeb1b805b6710e",
+            "player_name": "Matt Jr.",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "44b3ce3d11a74c0db84ee8dc7c63d52b",
+            "player_name": "Kevin",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "629d92e8cb254c159e849b2b1f53d4b0",
+            "player_name": "Pedro",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "bd87278f82a64ca99711cae90b9daea8",
+            "player_name": "Frank",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "fbec177afb3d422488e4ddf767ec9c9e",
+            "player_name": "Mason",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "930174bf052d475cbfb371816d2ac235",
+            "player_name": "Julia",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "e8c9b93e4b054ab1963e5ec12a14efe3",
+            "player_name": "Carol",
+            "money": 1985,
+            "affinity": 0
+        },
+        {
+            "player_id": "70cb08ba18cf4578897e2079e5648e80",
+            "player_name": "Denis",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "311d7bbb563348eeba56cccf80696f16",
+            "player_name": "Emma",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "754dcdfa57ac4d50a906f0f82f856c97",
+            "player_name": "Devin",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "ec75627a2c3049ab94f0a8d5154fe8c1",
+            "player_name": "Devon",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "454ac6ceeda7458d872a3f085ec662e1",
+            "player_name": "Fran",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "be5cd982f2a346deaac0a0c3c88d6fe8",
+            "player_name": "Grace",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "2bc024858d9541369ff4d632859f65f9",
+            "player_name": "Alexandra",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "f34ddd2b020d44a19d5a71ef933b8ba0",
+            "player_name": "Issac",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "7f4865ba2fa34c24a11c8e4b9a3b56cb",
+            "player_name": "Zeus",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "96ad650ac3f84065a276ef56bef6d37c",
+            "player_name": "Liam",
+            "money": 2000,
+            "affinity": 0
+        },
+        {
+            "player_id": "e355c56c0ec441e1aafd918278ed1800",
+            "player_name": "Nick",
+            "money": 2000,
+            "affinity": 0
+        }
+    ],
+    "dealer": [
+        {
+            "player_id": "2021b4c157f24b67af8ceabb21692f4e",
+            "player_name": "Dealer",
+            "money": 10000000,
+            "affinity": 0
+        }
+    ]
+}
