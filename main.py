@@ -172,8 +172,7 @@ while True:
                     elif player_hs == 'hit':
                         dealt_card: Card = deck.deal_card(hand)
                         typeWriter(f'The dealer dealt a {dealt_card.face} of {dealt_card.suit}')
-                    
-                                            
+                              
                         if checkPlayerBust(player):
                             break
 

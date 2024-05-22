@@ -1,0 +1,25 @@
+{
+    "character_list" : 
+    [
+        {
+            "name": "John Smith",
+            "first_name" : "John",
+            "last_name" : "Smith",
+            "age" : "30",
+            "height" : 0,
+            "sexuality" : "bi",
+            "pronouns" : "he/him/his",
+            "affinity" : 0
+        },
+        {
+            "name": "",
+            "first_name" : "",
+            "last_name" : "",
+            "age" : "",
+            "height" : 0,
+            "sexuality" : "",
+            "pronouns" : "",
+            "affinity" : 0
+        }
+    ]
+}
