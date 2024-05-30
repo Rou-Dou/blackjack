@@ -255,7 +255,7 @@ def cut_deck(deck: list[Card]) -> dict[str, list[Card]]:
 def createPlayer(player_dictionary: dict[str, Any], player_type: str, player_name: str, money: int, affinity: int) -> Player:
     character_id: str = uuid.uuid4().hex
     new_player = Player(character_id, player_type, player_name, money, affinity)
-    player_dictionary[player_type].append(new_player.toJSON())
+    player_dictionary[player_type].append(new_player.__toJSON())
     return new_player
     
 
@@ -263,16 +263,16 @@ def getSeatPosition(seat_positions: list[int]) -> int:
     return seat_positions.pop(randint(0, len(seat_positions) - 1))
 
 
-def dealCards(deck: Deck, players: list[Player]) -> None:
+def dealCards(dealer: Dealer, players: list[Player]) -> None:
     # burn a card
-    deck.burn_card()
+    dealer.burn_card()
     
     deal_card: int = 1
     while deal_card < 3:
         for player in players:
             if player.type == '':
                 continue
-            deck.deal_card(player.hands[0])
+            dealer.deal_card(player.hands[0])
         deal_card += 1
 
 
@@ -316,7 +316,7 @@ def checkPlayerBust(player: Player) -> bool:
             if player.type != 'dealer':
                 player.money -= player.bet
             print(overMessage)
-            player.setStatus(True)
+            player.__setStatus(True)
             return True
     return False
     
