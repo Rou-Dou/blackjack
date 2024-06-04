@@ -1,7 +1,12 @@
 from enum import Enum
-from value_dictionary import *
+import json
 from time import sleep
-from typing import Any
+from typing import Any, Union
+from random import randint
+
+json_file = open('value_dictionary.json', 'r')
+value_dictionary: dict[str, int] = json.load(json_file)
+json_file.close()
 
 class Faces(Enum):
     Ace = 1
@@ -60,6 +65,9 @@ class Hand:
     
     def print_hand(self) -> None:
         hand_str: str = ''
+        
+        print("Hand Contents: ")
+
         for position, card in enumerate(self.cards, 1):
             hand_str += (f'{position}: {card.show_card()}\n')
         print(hand_str)
@@ -84,6 +92,9 @@ class Deck:
     def append_deck(self, deck:list[Card]) -> None:
         self.cards = self.cards + deck
 
+    def num_cards(self) -> int:
+        return len(self.cards)
+
 
 class Player:
     def __init__(self, id:str, type: str, player_name: str, money: int, affinity: int) -> None:
@@ -100,7 +111,7 @@ class Player:
             f"\t{hand.print_hand()}"
             print(f'with a value of {hand.count_hand()}\n')
     
-    def __toJSON(self) -> dict[str,Any]:
+    def toJSON(self) -> dict[str,Any]:
         playerDict: dict[str, Any] = {}
         playerDict["player_id"] = self.id
         playerDict["player_name"] = self.player_name
@@ -108,33 +119,60 @@ class Player:
         playerDict["affinity"] = self.affinity
         return playerDict
     
-    def __makeBet(self, bet: int) -> None:
+    def makeBet(self, bet: int) -> None:
         if bet > self.money:
-            self.bet = self.money
-            print('All in')
+            bet = self.money
+            print(f'{self.player_name} went all in')
             sleep(2)
-            return
 
-        if self.type == 'cpu':
-            mod_value: int = bet % 5
-            if mod_value < 3:
-                self.bet = bet - mod_value 
-            else:
-                self.bet = bet + (5 - mod_value)
-            return
+        elif self.type == 'cpu':
+            bet = self.__getBet()
+
         self.bet = bet
 
-    def __setStatus(self, over: bool) -> None:
+        
+    def __getBet(self) -> int:
+        dice_roll: int = randint(1,6)
+        reroll: int = randint(1,6)
+        matches: int = 0
+        low: int = 0
+        high :int = 0
+
+        while reroll == dice_roll:
+            reroll = randint(1,6)
+            matches += 1
+        match matches:
+            case 0:
+                low, high = 5, 50
+            case 1:
+                low, high = 50, 100
+            case 2: 
+                low, high = 100, 200
+            case _:
+                low, high = 200, 500
+        
+        bet: int = randint(low, high) 
+
+        mod_value: int = bet % 5
+
+        if mod_value < 3:
+            bet = bet - mod_value 
+        else:
+            bet = bet + (5 - mod_value)
+
+        return bet
+
+    def setStatus(self, over: bool) -> None:
         self.over: bool = over
 
     def createHand(self) -> None:
         new_hand: Hand = Hand()
         self.hands.append(new_hand)
 
-    def __affinityUp(self) -> None:
+    def affinityUp(self) -> None:
         self.affinity += 1
     
-    def __affinityDown(self) -> None:
+    def affinityDown(self) -> None:
         self.affinity -= 1
 
     def hasTwentyOne(self, hand: Hand) -> bool:
@@ -145,7 +183,7 @@ class Player:
 
         # If player has 21 stand automatically
         if has_twenty_one:
-            self.__setStatus(False)
+            self.setStatus(False)
 
             match hand_length:
                 case 2:
@@ -153,23 +191,46 @@ class Player:
                 case _:
                     end_string = "got 21!"
 
-            if self.type == 'player':
-                player_type_str = 'You'
-            elif self.type == 'cpu':
-                player_type_str = self.player_name
-            elif self.type == 'dealer':
+            if isinstance(self, Player):
+                match self.type:
+                    case "player":
+                        player_type_str = 'You'
+                    case "cpu":
+                        player_type_str = self.player_name
+            else:
                 player_type_str = 'The dealer'
                 
             print(f'{player_type_str} {end_string}')
             return True
         
         return False
+    
+    def isOver(self) -> bool:
+        overMessage: str = ''
+        for hand in self.hands:
+            if hand.count_hand() > 21:
+                self.setStatus(True)
+
+                if isinstance(self, Player) and not isinstance(self, Dealer):
+                    match self.type:
+                        case "player":
+                            overMessage = 'You busted!'
+                        case __:
+                            overMessage = f'{self.player_name} busted!'
+                    self.money -= self.bet
+                else:
+                    overMessage = 'The dealer busted!'
+
+                print(overMessage)
+                return True
+            
+        return False
 
 class Dealer(Player):
     def __init__(self, id: str, deck: Deck, hand: Hand) -> None:
-        self.id: str = ''
-        self.deck: Deck = Deck()
-        self.hand: Hand = Hand()
+        self.id: str = id
+        self.deck: Deck = deck
+        self.hands: list[Hand] = [hand]
 
     def deal_card(self, hand:Hand) -> Card:
         dealt_card: Card = self.deck.cards.pop(0)
@@ -178,21 +239,24 @@ class Dealer(Player):
     
     def burn_card(self) -> None:
         self.deck.cards.pop(0)
+    
+    def deal_self(self) -> None:
+        self.hands[0].add_card(self.deck.cards.pop(0))
 
     def get_dealer_up_card(self) -> Card:
-        return self.hand.cards[1]
+        return self.hands[0].cards[1]
 
 
 class Table:
     def __init__(self, dealer: Dealer) -> None:
-        self.table_seats: list[Player] = []
+        self.table_seats: list[Union[Player, None]] = []
         self.minimum_bet: int = 0
         self.dealer: Dealer = dealer
 
     def getOpenSeats(self) -> list[int]:
         open_seat_indexes: list[int] = []
         for i, player in enumerate(self.table_seats):
-            if player.player_name == '':
+            if player is None:
                 open_seat_indexes.append(i)
         return open_seat_indexes
     
@@ -200,20 +264,21 @@ class Table:
         print(f'There are {self.getNumOpenSeats()} seat(s) available at table {table_number+1}:\n')
         print(f'People currently at table {table_number+1}:\n')
         for player in self.table_seats:
-            if player.type != '' and player.type != 'dealer':
+            if player is not None:
                 print(f'{player.player_name}')
         print()
 
     def getNumOpenSeats(self) -> int:
         open_seat_count: int = 0
         for player in self.table_seats:
-            if player.player_name == '':
+            if player is not None:
                 open_seat_count += 1
         return open_seat_count
 
 
 class Casino:
-    def __init__(self) -> None:
+    def __init__(self, num_tables: int) -> None:
+        self.num_tables: int = num_tables
         self.tables: list[Table] = []
     
     def getTable(self, table_number: int) -> Table:

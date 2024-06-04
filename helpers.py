@@ -1,8 +1,8 @@
 from classes import *
-from random import randint, choice
+from misc_functions import *
+from random import choice
 import uuid
 import json
-from typing import Any
 
 
 def initGame() -> dict[str, Any]:
@@ -47,7 +47,7 @@ def saveGame(player_dictionary: dict[str, Any]) -> None:
 
 def player_bet_input(player: Player) -> int:
 
-    print(f'You have {player.money} chips.')
+    print(f'You have {player.money} chips')
     sleep(1)
 
     bet_string: str = 'please enter a bet: '
@@ -55,7 +55,7 @@ def player_bet_input(player: Player) -> int:
     while True:
         player_bet: str = input(bet_string)
         for char in player_bet:
-            if char not in '1234567890':
+            if not char.isdigit():
                 bet_string = 'Your bet must be a whole number: '
                 break
         
@@ -75,25 +75,23 @@ def createPlayerCharacter(player_dictionary: dict[str, Any]) -> None:
         player_name = input(player_name_prompt).strip()
 
         if player_name.lower().find('dealer') != -1:
-            player_name_prompt = 'Invalid player_name, please enter a different name: \n'
+            player_name_prompt = 'Invalid player name, please enter a different name: \n'
         elif hasNumbers(player_name):
             player_name_prompt = 'Please only include alphabetical characters in your name: \n'
         else:
             break
-    createPlayer(player_dictionary, "player", player_name, 2000, 0)
 
-    txt_file = open('player_dictionary.json', 'w')
-    json.dump(player_dictionary, txt_file)
-    txt_file.close()
+    createPlayer(player_dictionary, "player", player_name, 2000, 0)
+    
+    saveGame(player_dictionary)
         
 
 def populate_table(table: Table, player_dictionary: dict[str, Any]) -> Table:
-    empty_player: Player = Player('', '', '', 0, 0)
     players: list[Player] = []
-    dealer = player_dictionary['dealer'][0]
-    rand_num: int = randint(1,100)
+    rand_num: int = -1
+
     while len(players) < 10:
-        repeat:bool = False
+        repeat: bool = False
         selected_player: dict[str, Any] = (player_dictionary['cpu'][randint(0, len(player_dictionary['cpu']) - 1)])
         for player in players:
             if player.player_name == selected_player['player_name']:
@@ -105,11 +103,9 @@ def populate_table(table: Table, player_dictionary: dict[str, Any]) -> Table:
     while len(table.table_seats) < 4:
         rand_num = randint(1,100)
         if rand_num > 50:
-            table.table_seats.append(empty_player)
+            table.table_seats.append(None)
         else:
-            table.table_seats.append(players.pop(randint(0, len(players) - 1)))
-    table.table_seats.append(Player(dealer['player_id'], 'dealer', dealer['player_name'], dealer['money'], dealer['affinity']))
-    
+            table.table_seats.append(players.pop(randint(0, len(players) - 1)))    
     return table
 
 
@@ -255,84 +251,59 @@ def cut_deck(deck: list[Card]) -> dict[str, list[Card]]:
 def createPlayer(player_dictionary: dict[str, Any], player_type: str, player_name: str, money: int, affinity: int) -> Player:
     character_id: str = uuid.uuid4().hex
     new_player = Player(character_id, player_type, player_name, money, affinity)
-    player_dictionary[player_type].append(new_player.__toJSON())
+    player_dictionary[player_type].append(new_player.toJSON())
     return new_player
     
 
-def getSeatPosition(seat_positions: list[int]) -> int:
-    return seat_positions.pop(randint(0, len(seat_positions) - 1))
+def dealCards(dealer: Dealer, players: list[Union[Player, None]]) -> None:
 
-
-def dealCards(dealer: Dealer, players: list[Player]) -> None:
-    # burn a card
     dealer.burn_card()
     
     deal_card: int = 1
     while deal_card < 3:
         for player in players:
-            if player.type == '':
+            if player is None:
                 continue
             dealer.deal_card(player.hands[0])
+        dealer.deal_self()
         deal_card += 1
 
 
-def hasNumbers(player_name: str) -> bool:
-    for char in player_name:
-        if not char.lower() in 'abcdefghijklmnopqrstuvwxyz':
-            return True
-    return False
-
-
 def resetTable(table: Table, dictionary: dict[str, Any]) -> None:
-    i = 0
-    leaving_players = []
-    for player in table.table_seats:
-        player.hands = []
-        player.bet = 0
-        rand = randint(1,100)
-        if (player.money < 500 or player.over == True) and (player.type != 'dealer' and player.type != 'player'):
-            player.over = False
-            if rand > 80:
+
+    leaving_players: list[int] = []
+    for i, player in enumerate(table.table_seats):
+        if player is not None:
+            player.hands = []
+            player.bet = 0
+            rand = randint(1,100)
+
+            if (player.money < 500 or player.over) and (player.type != 'player') and rand > 80:
                 leaving_players.append(i)
-                continue
-        i += 1
+
+            player.over = False
     
     #remove players who left the table
     for index in leaving_players:
         table.table_seats.pop(index)
 
     populate_table(table, dictionary)
-
-
-def checkPlayerBust(player: Player) -> bool:
-    overMessage: str = ''
-    if player.type == 'player':
-        overMessage = 'You busted!'
-    else:
-        overMessage = f'{player.player_name} busted!'
-
-    for hand in player.hands:
-        if hand.count_hand() > 21:
-            if player.type != 'dealer':
-                player.money -= player.bet
-            print(overMessage)
-            player.__setStatus(True)
-            return True
-    return False
-    
-
-def typeWriter(string) -> None:
-    build_string: str = ''
-    for count, char in enumerate(string):
-        if count == len(string) - 1:
-            build_string += char
-            print(build_string, end="")
-            print()
-            sleep(0.05)
-        else:
-            build_string += char
-            print(build_string, end="")
-            print("\r", end="")
-            sleep(0.05)
-    sleep(0.5)
         
+
+# logic here is based on 'ideal' blackjack play at a basic level
+# A simple series of dealer/player conditions are considered for when the CPU
+# should hit, otherwise `shouldHit` is false by default and the CPU will stand.
+def shouldHit(dealer_up_card_value, hand_value) -> bool:
+    shouldHit: bool = False
+    if dealer_up_card_value >= 7 and 12 <= hand_value <= 16:
+        shouldHit = True
+    elif 1 < dealer_up_card_value < 4 and hand_value == 12:
+        shouldHit = True
+    elif dealer_up_card_value > 9 and hand_value == 10:
+        shouldHit = True
+    elif dealer_up_card_value == 2 or dealer_up_card_value >= 7 and hand_value == 9:
+        shouldHit = True
+    elif hand_value == 8:
+        shouldHit = True
+
+    return shouldHit

@@ -1,17 +1,13 @@
 from helpers import *
-from typing import Any
-from random import randint
 import mypy
-from time import sleep
 
 # main globals
 player_dictionary: dict[str, Any] = initGame()
-main_casino: Casino = Casino()
 num_tables: int = 4
-bet: int = 0
+main_casino: Casino = Casino(num_tables)
 deck: Deck = createNewDeck()
-dealer_object: dict[str, Any] = player_dictionary['dealer'][0]
-dealer: Dealer = Dealer("95f16661-819d-4fd0-9dc3-27ede1bcc027", deck, Hand())
+dealer_id: str = "95f16661-819d-4fd0-9dc3-27ede1bcc027"
+dealer: Dealer = Dealer(dealer_id, deck, Hand())
 
 # Player character select. Print current players and prompt for selection
 # If the player types 'new' create a new character, otherwise
@@ -25,7 +21,9 @@ while True:
     if profile_index == 'new':
         createPlayerCharacter(player_dictionary)
 
-    elif (profile_index not in '0123456789') or (int(profile_index) > len(player_dictionary['player']) or int(profile_index) < 1):
+    elif not profile_index.isdigit() or ( \
+        int(profile_index) > len(player_dictionary['player']) or \
+        int(profile_index) < 1):
         continue
 
     else:
@@ -63,46 +61,24 @@ available_seats = selected_table.getOpenSeats()
 
 for seat in available_seats:
     seat += 1
-    print(f'{seat}: seat {seat}')
+    print(f'seat {seat}')
 
 # prompt player for preferred seat
 while True:
-    seat_selected: int = int(input('Which seat would you like to sit at?: '))
-
-    if seat_selected <= len(available_seats) and seat_selected > 0:
-        selected_table.table_seats[available_seats[seat_selected-1]] = selected_profile
+    selected_seat: int = int(input('Which seat would you like to sit at?: '))
+    if  selected_seat > 0 and ((selected_seat - 1) in available_seats):
+        selected_table.table_seats[available_seats[selected_seat-1]] = selected_profile
         break
 
 # Betting loop
 while True:
     for player in selected_table.table_seats:
-        if player.type == '':
+        if player == None:
             continue
         
         # CPU loop, based on dice rolls, the CPU bets more or less.
         elif player.type == 'cpu':
-            dice_roll: int = randint(1,6)
-            reroll: int = randint(1,6)
-            matches: int = 0
-            low: int = 0
-            high :int = 0
-
-            while reroll == dice_roll:
-                reroll = randint(1,6)
-                matches += 1
-            match matches:
-                case 0:
-                    low, high = 5, 50
-                case 1:
-                    low, high = 50, 100
-                case 2: 
-                    low, high = 100, 200
-                case _:
-                    low, high = 200, 500
-            
-            player_bet: int = randint(low, high) 
-            player.makeBet(player_bet)
-
+            player.makeBet(0)
             print(f'{player.player_name} bet {player.bet} chips')
         
         # Player is prompted to bet here
@@ -111,11 +87,12 @@ while True:
             player.makeBet(bet)
             typeWriter(f'You bet {player.bet} chips')
 
-    table_players: list[Player] = selected_table.table_seats
+    table_players: list[Union[Player, None]] = selected_table.table_seats
 
     # give each player at the table a hand and deal cards
     for player in table_players:
-        player.createHand()
+        if player is not None:
+            player.createHand()
     
     dealCards(dealer, table_players)
 
@@ -129,9 +106,8 @@ while True:
 
     # Empty player seats are skipped, search for player type to determine what to do
     for player in table_players:
-        if player.type == '':
+        if player is None:
             continue
-        print(f"{player.player_name}'s turn: \n")
         for hand in player.hands:
             while True:
                 # first_player turn
@@ -151,8 +127,8 @@ while True:
                         player.bet = player.bet*2
                         print(f'Your current bet is now {player.bet} chips')
                         dealer.deal_card(hand)
-                        checkPlayerBust(player)
-                        print(f'{player.print_player_hand()} value: {hand.count_hand()}\n')
+                        player.isOver()
+                        player.print_player_hand()
                         sleep(1)
                         break
                     
@@ -175,87 +151,79 @@ while True:
                         dealt_card: Card = dealer.deal_card(hand)
                         typeWriter(f'The dealer dealt a {dealt_card.face} of {dealt_card.suit}')
                               
-                        if checkPlayerBust(player):
+                        if player.isOver():
                             break
 
                     # if the player stands their hand is printed and the loop is broken.
                     elif player_hs == 'stand':
-                        print(f'You stood with a hand of: ')
+                        print('You stood')
                         player.print_player_hand()
-                        print(f'with a value of {hand.count_hand()}\n')
                         player.setStatus(False)
                         break
 
                 
                 # CPU turn
                 elif player.type == 'cpu':
-                    shouldHit: bool = False
                     hand_value: int = hand.count_hand()
+                    willHit: bool = shouldHit(dealer_up_card_value, hand_value)
 
-                    if checkPlayerBust(player) or player.hasTwentyOne(hand):
+                    # bust 
+                    if player.isOver():
                         break
 
-                    # logic here is based on 'ideal' blackjack play at a basic level
-                    # A simple series of dealer/player conditions are considered for when the CPU
-                    # should hit, otherwise `shouldHit` is false by default and the CPU will stand.
-                    if dealer_up_card_value >= 7 and 12 <= hand_value <= 16:
-                        shouldHit = True
-                    elif 1 < dealer_up_card_value < 4 and hand_value == 12:
-                        shouldHit = True
-                    elif dealer_up_card_value > 9 and hand_value == 10:
-                        shouldHit = True
-                    elif dealer_up_card_value == 2 or dealer_up_card_value >= 7 and hand_value == 9:
-                        shouldHit = True
-                    elif hand_value == 8:
-                        shouldHit = True
-
-                    if shouldHit:
+                    # 21/blackjack
+                    elif player.hasTwentyOne(hand):
+                        break
+                    
+                    # hit
+                    elif willHit:
                         dealer.deal_card(hand)
+
                     # stand
                     else:
                         player.setStatus(False)
                         break
+
+        # check if a new deck needs to be created and create one if so    
+        if deck.num_cards() < 12:
+            new_deck: Deck = createNewDeck()
+            deck.append_deck(new_deck.cards)
                 
-                # Dealer Turn
-                else:
-                    dealer_hand_value: int = hand.count_hand()            
-                    hand.print_hand()
-                    print(f'\nValue: {dealer_hand_value}')
+    # Dealer Turn
+    print("\nDealers Turn")
+    while True:
+        dealer_hand_value: int = dealer.hands[0].count_hand()      
+        dealer.hands[0].print_hand()
+        print(f'\nValue: {dealer_hand_value}')
 
-                    if checkPlayerBust(player) or player.hasTwentyOne(hand):
-                        break
+        if dealer.isOver() or dealer.hasTwentyOne(hand):
+            break
 
-                    elif dealer_hand_value < 17:
-                        dealer.deal_card(hand)
-                                            
-                    else:
-                        print(f'The dealer stood with a hand value of {hand.count_hand()}\n')
-                        player.setStatus(False)
-                        break
+        elif dealer_hand_value < 17:
+            dealer.deal_card(dealer.hands[0])
+                                
+        else:
+            print(f'The dealer stood with a hand value of {dealer_hand_value}\n')
+            dealer.setStatus(False)
+            break
 
-            # check if a new deck needs to be created and create one if so    
-            if len(deck.cards) < 12:
-                new_deck: Deck = createNewDeck()
-                deck.append_deck(new_deck.cards)
-
-    # remove the dealer from the table and store his final hand values
-    dealer_info: Player = selected_table.table_seats.pop(4)
-    dealer_hand_value: int = dealer_info.hands[0].count_hand()
+    # store dealer hand values for evaluation
+    dealer_hand_value = dealer.hands[0].count_hand()
 
     #### Payout/loss calculation ####
     # for each player or CPU type, check a series of conditions and add or subtract chips 
     for player in table_players:
-        if player.type == '' or player.type == 'dealer':
+        if player is None:
             continue
         
         # for each hand, check if the player has beaten the dealer, give them 2 to 1 payout, 
         # otherwise subtract chips. The loss calculations are only if the player has not gone over 21
         # over 21 calculations are calculated at the time of the bust
         for hand in player.hands:
-            if (player.over == False and (dealer_info.over == True or hand.count_hand() > dealer_hand_value)):
+            if (not player.over and (dealer.over or hand.count_hand() > dealer_hand_value)):
                 player.money += round(player.bet * 1.5)
 
-            elif hand.count_hand() < dealer_hand_value and player.over == False:
+            elif hand.count_hand() < dealer_hand_value and not player.over:
                 player.money -= round(player.bet)
 
         print(f"{player.player_name} has {player.money} chips")
