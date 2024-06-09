@@ -5,7 +5,7 @@ import mypy
 player_dictionary: dict[str, Any] = initGame()
 num_tables: int = 4
 main_casino: Casino = Casino(num_tables)
-deck: Deck = createNewDeck()
+deck: Deck = Deck()
 dealer_id: str = "95f16661-819d-4fd0-9dc3-27ede1bcc027"
 dealer: Dealer = Dealer(dealer_id, deck, Hand())
 
@@ -66,8 +66,8 @@ for seat in available_seats:
 # prompt player for preferred seat
 while True:
     selected_seat: int = int(input('Which seat would you like to sit at?: '))
-    if  selected_seat > 0 and ((selected_seat - 1) in available_seats):
-        selected_table.table_seats[available_seats[selected_seat-1]] = selected_profile
+    if  selected_seat > 0 and (selected_seat - 1) in available_seats:
+        selected_table.table_seats[selected_seat-1] = selected_profile
         break
 
 # Betting loop
@@ -181,13 +181,14 @@ while True:
 
                     # stand
                     else:
+                        print(f'{player.player_name} stood')
                         player.setStatus(False)
                         break
 
         # check if a new deck needs to be created and create one if so    
         if deck.num_cards() < 12:
-            new_deck: Deck = createNewDeck()
-            deck.append_deck(new_deck.cards)
+            new_deck: Deck = Deck()
+            deck.append_deck(new_deck)
                 
     # Dealer Turn
     print("\nDealers Turn")

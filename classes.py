@@ -2,7 +2,7 @@ from enum import Enum
 import json
 from time import sleep
 from typing import Any, Union
-from random import randint
+from random import randint, choice
 
 json_file = open('value_dictionary.json', 'r')
 value_dictionary: dict[str, int] = json.load(json_file)
@@ -79,8 +79,10 @@ class Hand:
 class Deck:
     def __init__(self) -> None:
         self.cards: list[Card] = [] #cards is a list of class Card
+        self.__create_deck()
+        self.__shuffle_deck(7)
 
-    def create_deck(self) -> None:
+    def __create_deck(self) -> None:
         for suit in Suits:
             for face in Faces:
                 self.cards.append(Card(face.name, suit.name, value_dictionary[face.name]))
@@ -89,11 +91,132 @@ class Deck:
         for card in self.cards:
             card.show_card()
 
-    def append_deck(self, deck:list[Card]) -> None:
-        self.cards = self.cards + deck
+    def append_deck(self, deck: "Deck") -> None:
+        self.cards = self.cards + deck.cards
 
     def num_cards(self) -> int:
         return len(self.cards)
+    
+    def __cut_deck(self) -> dict[str, list[Card]]:
+        '''
+        Takes a provided 52 card deck and breaks it into two halves at a random point near the center.
+        Returns an object with two attribues "left_half" and "right_half"
+
+        >> cut_deck([1,2,3,4,5]) \n
+        {
+            "left_half" : [1,2],
+            "right_half" : [3,4,5]
+        }
+
+        >> cut_deck([1,5,6,10,15,3,2,5]) \n
+        {
+            "left_half" : [1,5,6,10,15]
+            "right_half" : [3,2,5]
+        }
+        '''
+        deck_half: int = len(self.cards)//2
+        deck_cut: int = randint(deck_half - 5, deck_half + 5)
+        left_half: list[Card] = self.cards[:deck_cut]
+        right_half: list[Card] = self.cards[deck_cut:]
+
+        dh = {
+                "left_half" : left_half,
+                "right_half" : right_half
+            }
+
+        return dh
+    
+
+    def __shuffle_deck(self, num_shuffles) -> None:
+        shuffle_count: int = 1
+        current_shuffle: list[Card] = []
+        left_half: list[Card] = []
+        right_half: list[Card] = []
+
+        # Prep work for the shuffle, creates two deck halves to be shuffled together using a random cut location
+        while shuffle_count <= num_shuffles:
+
+            # Choose a random cut location to break the deck in two parts
+            # recombine but inverse to perform a cut
+            left_right: dict[str, list[Card]] = self.__cut_deck()
+            self.cards = left_right["right_half"] + left_right["left_half"]
+
+            # cut again then reassign halves
+            left_right = self.__cut_deck()
+            left_half = left_right["left_half"]
+            right_half = left_right["right_half"]
+
+            length_left: int = len(left_half)
+            length_right: int = len(right_half)
+
+            # create counters for when a hand is skipped due to RNG
+            left_skip_count: int = 0
+            right_skip_count: int = 0
+
+            # This loop will perform the bridge shuffle one time
+            while True:
+
+                # generate bool for determining which hand will append cards
+                left_go: bool = choice([True, False])
+                right_go: bool = choice([True, False])
+
+                # if the hand has been skipped twice and would be skipped again, automatically set it to true
+                if left_skip_count > 1 and left_go == False:
+                    left_go = True
+                if right_skip_count > 1 and right_go == False:
+                    right_go = True
+
+                # determine a jitter multiplier to increase randomness on how many cards append per hand per loop
+                left_jitter: range = range(0,randint(1,2))
+                right_jitter: range = range(0, randint(1,2))
+
+                # if either hand would go negative from the multiplier ensure that the loop will only trigger once
+                if length_left - len(left_jitter) < 0:
+                    left_jitter = range(0,0)
+                if length_right - len(right_jitter) < 0:
+                    right_jitter = range(0,0)
+
+                # This is where cards mix: check if the left and/or right deck should fire, if so append cards 
+                # according to the multiplier, if not increment skip count
+                if left_go:
+                    for i in left_jitter: 
+                        current_shuffle.append(left_half.pop())
+                        length_left -= 1
+                        left_skip_count = 0
+                else:
+                    left_skip_count += 1
+
+                if right_go:
+                    for i in right_jitter:
+                        current_shuffle.append(right_half.pop())
+                        length_right -= 1
+                        right_skip_count = 0
+                else:
+                    right_skip_count += 1
+                
+                # ensure no deck ran out since the last loop, if only one is 
+                # empty append any remaining cards from the other then break the loop
+                    
+                if length_left == 0 and length_right == 0:
+                    break   
+                
+                elif length_left == 0:
+                    for i in reversed(range(0,length_right)):
+                        current_shuffle.append(right_half[i])
+                    break
+
+                elif length_right == 0:
+                    for i in reversed(range(0,length_left)):
+                        current_shuffle.append(left_half[i])
+                    break
+            
+            # increment shuffle count
+            self.cards = current_shuffle
+            shuffle_count += 1 
+            current_shuffle = []
+
+
+
 
 
 class Player:
