@@ -146,7 +146,8 @@ def resetTable(table: Table, dictionary: dict[str, Any]) -> None:
     #remove players who left the table
     for index in leaving_players:
         table.table_seats.pop(index)
-
+        
+    table.dealer.hands = []
     populate_table(table, dictionary)
         
 

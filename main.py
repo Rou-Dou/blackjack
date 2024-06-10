@@ -6,8 +6,9 @@ player_dictionary: dict[str, Any] = initGame()
 num_tables: int = 4
 main_casino: Casino = Casino(num_tables)
 deck: Deck = Deck()
-dealer_id: str = "95f16661-819d-4fd0-9dc3-27ede1bcc027"
-dealer: Dealer = Dealer(dealer_id, deck, Hand())
+selected_seat: int = -1
+selected_profile: Player
+dealer: Dealer
 
 # Player character select. Print current players and prompt for selection
 # If the player types 'new' create a new character, otherwise
@@ -35,7 +36,7 @@ selected_profile = Player(profile_object['player_id'], 'player', profile_object[
 
 # Populate the tables in the casino with players
 for i in range(0, num_tables):
-    populated_table: Table = populate_table(Table(dealer), player_dictionary)
+    populated_table: Table = populate_table(Table(Dealer('', Deck(), Hand())), player_dictionary)
     if populated_table.getNumOpenSeats() > 0:
         main_casino.addTable(populated_table)
 
@@ -57,6 +58,7 @@ while True:
         break
 
 # print seats available at the chose table
+dealer = selected_table.dealer
 available_seats = selected_table.getOpenSeats()
 
 for seat in available_seats:
@@ -65,7 +67,7 @@ for seat in available_seats:
 
 # prompt player for preferred seat
 while True:
-    selected_seat: int = int(input('Which seat would you like to sit at?: '))
+    selected_seat = int(input('Which seat would you like to sit at?: '))
     if  selected_seat > 0 and (selected_seat - 1) in available_seats:
         selected_table.table_seats[selected_seat-1] = selected_profile
         break
@@ -93,6 +95,8 @@ while True:
     for player in table_players:
         if player is not None:
             player.createHand()
+
+    table.dealer.createHand()
     
     dealCards(dealer, table_players)
 
@@ -201,8 +205,8 @@ while True:
             break
 
         elif dealer_hand_value < 17:
-            dealer.deal_card(dealer.hands[0])
-                                
+            new_card = dealer.deal_card(dealer.hands[0])
+            print(f'The dealer got a {new_card.show_card()}')
         else:
             print(f'The dealer stood with a hand value of {dealer_hand_value}\n')
             dealer.setStatus(False)

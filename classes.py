@@ -3,6 +3,7 @@ import json
 from time import sleep
 from typing import Any, Union
 from random import randint, choice
+import uuid
 
 json_file = open('value_dictionary.json', 'r')
 value_dictionary: dict[str, int] = json.load(json_file)
@@ -49,11 +50,14 @@ class Hand:
 
     def count_hand(self) -> int:
         hand_value: int = 0
+        if hand_value > 21 and self.has_ace():
+            for card in self.cards:
+                if card.face == "Ace":
+                    card.value = 1
+                    
         for card in self.cards:
             hand_value += card.value
-    
-        if hand_value > 21 and self.has_ace():
-            hand_value -= 10
+
             
         return hand_value
         
@@ -79,10 +83,10 @@ class Hand:
 class Deck:
     def __init__(self) -> None:
         self.cards: list[Card] = [] #cards is a list of class Card
-        self.__create_deck()
-        self.__shuffle_deck(7)
+        self._create_deck()
+        self._shuffle_deck(7)
 
-    def __create_deck(self) -> None:
+    def _create_deck(self) -> None:
         for suit in Suits:
             for face in Faces:
                 self.cards.append(Card(face.name, suit.name, value_dictionary[face.name]))
@@ -97,7 +101,7 @@ class Deck:
     def num_cards(self) -> int:
         return len(self.cards)
     
-    def __cut_deck(self) -> dict[str, list[Card]]:
+    def _cut_deck(self) -> dict[str, list[Card]]:
         '''
         Takes a provided 52 card deck and breaks it into two halves at a random point near the center.
         Returns an object with two attribues "left_half" and "right_half"
@@ -127,7 +131,7 @@ class Deck:
         return dh
     
 
-    def __shuffle_deck(self, num_shuffles) -> None:
+    def _shuffle_deck(self, num_shuffles) -> None:
         shuffle_count: int = 1
         current_shuffle: list[Card] = []
         left_half: list[Card] = []
@@ -138,11 +142,11 @@ class Deck:
 
             # Choose a random cut location to break the deck in two parts
             # recombine but inverse to perform a cut
-            left_right: dict[str, list[Card]] = self.__cut_deck()
+            left_right: dict[str, list[Card]] = self._cut_deck()
             self.cards = left_right["right_half"] + left_right["left_half"]
 
             # cut again then reassign halves
-            left_right = self.__cut_deck()
+            left_right = self._cut_deck()
             left_half = left_right["left_half"]
             right_half = left_right["right_half"]
 
@@ -220,7 +224,7 @@ class Deck:
 
 
 class Player:
-    def __init__(self, id:str, type: str, player_name: str, money: int, affinity: int) -> None:
+    def __init__(self, id: str, type: str, player_name: str, money: int, affinity: int) -> None:
         self.id: str = id
         self.type: str = type
         self.player_name: str = player_name
@@ -249,12 +253,16 @@ class Player:
             sleep(2)
 
         elif self.type == 'cpu':
-            bet = self.__getBet()
+            bet = self._getBet()
 
         self.bet = bet
 
+    def _generatedUuid(self) -> None:
+        if self.id == '':
+            self.id = uuid.uuid4.hex()
+
         
-    def __getBet(self) -> int:
+    def _getBet(self) -> int:
         dice_roll: int = randint(1,6)
         reroll: int = randint(1,6)
         matches: int = 0
@@ -314,7 +322,7 @@ class Player:
                 case _:
                     end_string = "got 21!"
 
-            if isinstance(self, Player):
+            if not isinstance(self, Dealer):
                 match self.type:
                     case "player":
                         player_type_str = 'You'
@@ -338,7 +346,7 @@ class Player:
                     match self.type:
                         case "player":
                             overMessage = 'You busted!'
-                        case __:
+                        case _:
                             overMessage = f'{self.player_name} busted!'
                     self.money -= self.bet
                 else:
