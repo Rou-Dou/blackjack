@@ -147,11 +147,9 @@ class Deck:
 
             # cut again then reassign halves
             left_right = self._cut_deck()
-            left_half = left_right["left_half"]
-            right_half = left_right["right_half"]
 
-            length_left: int = len(left_half)
-            length_right: int = len(right_half)
+            length_left: int = len(left_right["left_half"])
+            length_right: int = len(left_right["right_half"])
 
             # create counters for when a hand is skipped due to RNG
             left_skip_count: int = 0
@@ -184,7 +182,7 @@ class Deck:
                 # according to the multiplier, if not increment skip count
                 if left_go:
                     for i in left_jitter: 
-                        current_shuffle.append(left_half.pop())
+                        current_shuffle.append(left_right["left_half"].pop())
                         length_left -= 1
                         left_skip_count = 0
                 else:
@@ -192,7 +190,7 @@ class Deck:
 
                 if right_go:
                     for i in right_jitter:
-                        current_shuffle.append(right_half.pop())
+                        current_shuffle.append(left_right["right_half"].pop())
                         length_right -= 1
                         right_skip_count = 0
                 else:
@@ -206,21 +204,18 @@ class Deck:
                 
                 elif length_left == 0:
                     for i in reversed(range(0,length_right)):
-                        current_shuffle.append(right_half[i])
+                        current_shuffle.append(left_right["right_half"][i])
                     break
 
                 elif length_right == 0:
                     for i in reversed(range(0,length_left)):
-                        current_shuffle.append(left_half[i])
+                        current_shuffle.append(left_right["left_half"][i])
                     break
             
             # increment shuffle count
             self.cards = current_shuffle
             shuffle_count += 1 
             current_shuffle = []
-
-
-
 
 
 class Player:
@@ -246,11 +241,15 @@ class Player:
         playerDict["affinity"] = self.affinity
         return playerDict
     
-    def makeBet(self, bet: int) -> None:
+    def makeBet(self, bet: int, min_bet: int) -> None:
+        if bet < min_bet:
+            bet = min_bet
+        
         if bet > self.money:
             bet = self.money
             print(f'{self.player_name} went all in')
             sleep(2)
+            
 
         elif self.type == 'cpu':
             bet = self._getBet()

@@ -5,10 +5,10 @@ import mypy
 player_dictionary: dict[str, Any] = initGame()
 num_tables: int = 4
 main_casino: Casino = Casino(num_tables)
-deck: Deck = Deck()
 selected_seat: int = -1
 selected_profile: Player
 dealer: Dealer
+
 
 # Player character select. Print current players and prompt for selection
 # If the player types 'new' create a new character, otherwise
@@ -17,7 +17,7 @@ while True:
     for count, player in enumerate(player_dictionary['player'], 1):
         print(f'{count}: {player["player_name"]}')
 
-    profile_index: str = input('Type the number of the profile you would like to use? Type "new" to create a new profile: ' )
+    profile_index: str = input(prompts["profile"])
 
     if profile_index == 'new':
         createPlayerCharacter(player_dictionary)
@@ -48,9 +48,9 @@ for count, table in enumerate(main_casino.tables):
 # prompt for table to sit at
 while True:
     try:
-        table_number: int = int(input('Which table would you like to check out? '))
-    except:
-        print('Please enter a valid number from the provided list')
+        table_number: int = int(input(prompts["table"]))
+    except Exception:
+        print(prompts["invalid_list_input"])
         continue
 
     if table_number <= len(main_casino.tables) and table_number > 0:
@@ -67,7 +67,7 @@ for seat in available_seats:
 
 # prompt player for preferred seat
 while True:
-    selected_seat = int(input('Which seat would you like to sit at?: '))
+    selected_seat = int(input(prompts["seat"]))
     if  selected_seat > 0 and (selected_seat - 1) in available_seats:
         selected_table.table_seats[selected_seat-1] = selected_profile
         break
@@ -80,13 +80,13 @@ while True:
         
         # CPU loop, based on dice rolls, the CPU bets more or less.
         elif player.type == 'cpu':
-            player.makeBet(0)
+            player.makeBet(0, selected_table.minimum_bet)
             print(f'{player.player_name} bet {player.bet} chips')
         
         # Player is prompted to bet here
         elif player.type == 'player':
             bet: int = player_bet_input(player)
-            player.makeBet(bet)
+            player.makeBet(bet, selected_table.minimum_bet)
             typeWriter(f'You bet {player.bet} chips')
 
     table_players: list[Union[Player, None]] = selected_table.table_seats
@@ -103,6 +103,7 @@ while True:
     # Print dealer information for player
     dealer_up_card: Card = dealer.get_dealer_up_card()
     dealer_up_card_value: int = dealer_up_card.value
+    deck = table.dealer.deck
 
     print(f"The dealer has a {dealer_up_card.show_card()}\n")
 
@@ -110,24 +111,31 @@ while True:
 
     # Empty player seats are skipped, search for player type to determine what to do
     for player in table_players:
+
         if player is None:
             continue
+
+        # check if a new deck needs to be created and create one if so    
+        if deck.num_cards() < 15:
+            new_deck: Deck = Deck()
+            deck.append_deck(new_deck)
+
         for hand in player.hands:
             while True:
                 # first_player turn
                 if player.type == 'player':
-                    hand.print_hand()
-                    print(f'Current hand value is {hand.count_hand()}\n')
+                    player.print_player_hand()
                     
                     if player.hasTwentyOne(hand):
                         break
 
-                    # prompt player for their action, logic will catch their decision
-                    player_hs: str = input('What would you like to do? (hit/stand/double down/split): ').lower()
+                    # prompt player for their action, logic will catch their decision]
+                    player_prompt: str = 'What would you like to do? (hit/stand/double down/split): '
+                    player_response: str = player_input(player_prompt, ['hit', 'stand', 'doubledown', 'double down', 'split'])
 
                     # in the case of double down, the player's bet is doubled and they are dealt a new card
                     # If they bust the hand is resolved right away, otherwise they are forced to stand
-                    if player_hs == 'double down' or player_hs == 'doubledown':
+                    if player_response == 'double down' or player_response == 'doubledown':
                         player.bet = player.bet*2
                         print(f'Your current bet is now {player.bet} chips')
                         dealer.deal_card(hand)
@@ -139,7 +147,7 @@ while True:
                     # In the case that 'split' is selected, the first the case is checked
                     # if it is a valid split situation, the player is given an additional hand, their
                     # original hand is split, and they proceed to play both hands.
-                    elif player_hs == 'split':
+                    elif player_response == 'split':
                         if len(hand.cards) == 2:
                             if hand.cards[0].face == hand.cards[1].face:
                                 new_hand = Hand()
@@ -149,9 +157,8 @@ while True:
                                 for hand in player.hands:
                                     dealer.deal_card(hand)
                                 
-                                
                     # if the player hits, they are dealt a new card and are checked for a bust.
-                    elif player_hs == 'hit':
+                    elif player_response == 'hit':
                         dealt_card: Card = dealer.deal_card(hand)
                         typeWriter(f'The dealer dealt a {dealt_card.face} of {dealt_card.suit}')
                               
@@ -159,7 +166,7 @@ while True:
                             break
 
                     # if the player stands their hand is printed and the loop is broken.
-                    elif player_hs == 'stand':
+                    elif player_response == 'stand':
                         print('You stood')
                         player.print_player_hand()
                         player.setStatus(False)
@@ -189,10 +196,6 @@ while True:
                         player.setStatus(False)
                         break
 
-        # check if a new deck needs to be created and create one if so    
-        if deck.num_cards() < 12:
-            new_deck: Deck = Deck()
-            deck.append_deck(new_deck)
                 
     # Dealer Turn
     print("\nDealers Turn")
@@ -241,12 +244,8 @@ while True:
     saveGame(player_dictionary)
 
     # ask for quit
-    play_again: str = ''
-    while play_again != 'no' and play_again != 'yes':
-        try:
-            play_again = input('Would you like to play another round (yes/no)? ').lower()
-        except:
-            print('Invalid Input')
+    player_prompt = 'Would you like to play another round (yes/no)? '
+    player_response = player_input(player_prompt, ['yes', 'no'])
     
-    if play_again == 'no':
+    if player_response == 'no':
         break

@@ -2,6 +2,8 @@ from classes import *
 from misc_functions import *
 import uuid
 import json
+with open('prompts.json', 'r') as json_file:
+    prompts: dict[str, str] = json.load(json_file)
 
 
 def initGame() -> dict[str, Any]:
@@ -49,17 +51,17 @@ def player_bet_input(player: Player) -> int:
     print(f'You have {player.money} chips')
     sleep(1)
 
-    bet_string: str = 'please enter a bet: '
+    bet_string: str = prompts["bet"]
     
     while True:
         player_bet: str = input(bet_string)
-        for char in player_bet:
-            if not char.isdigit():
-                bet_string = 'Your bet must be a whole number: '
-                break
+
+        if not player_bet.isdigit():
+            bet_string = prompts["invalid_bet_input"]
+            continue
         
         if int(player_bet) > player.money:
-            bet_string = f'You cannot bet more money than you have. You currently have {player.money} dollars: ' 
+            bet_string = f'{prompts["insufficient_money"]} you currently have {player.money} chips.\nPlease make another bet: '
             continue
 
         return int(player_bet)
@@ -168,3 +170,17 @@ def shouldHit(dealer_up_card_value, hand_value) -> bool:
         shouldHit = True
 
     return shouldHit
+
+def player_input(prompt: str, valid_inputs: list[str]) -> str:
+    player_input: str = ''
+   
+    while True:   
+        player_input = input(prompt)
+
+        if not player_input.isalpha() or player_input not in valid_inputs:
+            continue
+
+        break
+
+    return player_input.lower()
+        
