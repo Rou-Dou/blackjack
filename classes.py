@@ -4,12 +4,13 @@ from time import sleep
 from typing import Any, Union
 from random import randint, choice
 import uuid
+
 with open('player_dictionary.json','r') as json_file:
     player_dictionary: dict[str, Any] = json.load(json_file)
 
-json_file = open('value_dictionary.json', 'r')
-value_dictionary: dict[str, int] = json.load(json_file)
-json_file.close()
+with open('card_values.json', 'r') as vd:
+    card_values: dict[str, int] = json.load(vd)
+
 
 class Faces(Enum):
     Ace = 1
@@ -39,6 +40,7 @@ class Card:
         self.suit: str = suit
         self.value: int = value
 
+
     def show_card(self) -> str:
         return f'{self.face} of {self.suit}'
 
@@ -47,8 +49,10 @@ class Hand:
     def __init__(self) -> None:
         self.cards: list[Card] = [] #hand is type list with object
 
+
     def add_card(self, card: Card) -> None:
         self.cards.append(card)
+
 
     def count_hand(self) -> int:
         hand_value: int = 0
@@ -63,12 +67,14 @@ class Hand:
             
         return hand_value
         
+
     def has_ace(self) -> bool:
         for card in self.cards:
             if card.face == 'Ace':
                 return True
         return False
     
+
     def print_hand(self) -> None:
         hand_str: str = ''
         
@@ -78,6 +84,7 @@ class Hand:
             hand_str += (f'{position}: {card.show_card()}\n')
         print(hand_str)
     
+
     def clear_hand(self) -> None:
         self.cards.clear()
 
@@ -88,21 +95,26 @@ class Deck:
         self._create_deck()
         self._shuffle_deck(7)
 
+
     def _create_deck(self) -> None:
         for suit in Suits:
             for face in Faces:
-                self.cards.append(Card(face.name, suit.name, value_dictionary[face.name]))
+                self.cards.append(Card(face.name, suit.name, card_values[face.name]))
     
+
     def get_deck(self) -> None:
         for card in self.cards:
             card.show_card()
 
+
     def append_deck(self, deck: "Deck") -> None:
         self.cards = self.cards + deck.cards
+
 
     def num_cards(self) -> int:
         return len(self.cards)
     
+
     def _cut_deck(self) -> dict[str, list[Card]]:
         '''
         Takes a provided 52 card deck and breaks it into two halves at a random point near the center.
@@ -227,14 +239,17 @@ class Player:
         self.player_name: str = player_name
         self.money: int = money
         self.hands: list[Hand] = []
+        self.over: bool = False
         self.affinity: int = affinity
     
+
     def print_player_hand(self) -> None:
         for count, hand in enumerate(self.hands, 1):
             f"Hand {count}:\n"
             f"\t{hand.print_hand()}"
             print(f'with a value of {hand.count_hand()}\n')
     
+
     def toJSON(self) -> dict[str,Any]:
         playerDict: dict[str, Any] = {}
         playerDict["player_id"] = self.id
@@ -243,6 +258,7 @@ class Player:
         playerDict["affinity"] = self.affinity
         return playerDict
     
+
     def makeBet(self, bet: int, min_bet: int) -> None:
         if bet < min_bet:
             bet = min_bet
@@ -257,6 +273,7 @@ class Player:
             bet = self._getBet()
 
         self.bet = bet
+
 
     def _generatedUuid(self) -> None:
         if self.id == '':
@@ -294,18 +311,23 @@ class Player:
 
         return bet
 
+
     def setStatus(self, over: bool) -> None:
         self.over: bool = over
+
 
     def createHand(self) -> None:
         new_hand: Hand = Hand()
         self.hands.append(new_hand)
 
+
     def affinityUp(self) -> None:
         self.affinity += 1
     
+
     def affinityDown(self) -> None:
         self.affinity -= 1
+
 
     def hasTwentyOne(self, hand: Hand) -> bool:
         end_string: str = ""
@@ -337,8 +359,10 @@ class Player:
         
         return False
     
+
     def isOver(self) -> bool:
         overMessage: str = ''
+
         for hand in self.hands:
             if hand.count_hand() > 21:
                 self.setStatus(True)
@@ -362,18 +386,23 @@ class Dealer(Player):
     def __init__(self, id: str, deck: Deck, hand: Hand) -> None:
         self.id: str = id
         self.deck: Deck = deck
+        self.over: bool = False
         self.hands: list[Hand] = [hand]
+
 
     def deal_card(self, hand:Hand) -> Card:
         dealt_card: Card = self.deck.cards.pop(0)
         hand.add_card(dealt_card)
         return dealt_card
     
+
     def burn_card(self) -> None:
         self.deck.cards.pop(0)
     
+
     def deal_self(self) -> None:
         self.hands[0].add_card(self.deck.cards.pop(0))
+
 
     def get_dealer_up_card(self) -> Card:
         return self.hands[0].cards[1]
@@ -385,6 +414,7 @@ class Table:
         self.minimum_bet: int = min_bet
         self.dealer: Dealer = dealer
 
+
     def getOpenSeats(self) -> list[int]:
         open_seat_indexes: list[int] = []
         for i, player in enumerate(self.table_seats):
@@ -392,11 +422,13 @@ class Table:
                 open_seat_indexes.append(i)
         return open_seat_indexes
     
+
     def hasOpenSeats(self) -> bool:
         if self._getNumOpenSeats() < 1:
             return False
         return True
     
+
     def printTablePlayers(self, table_number) -> None:
         print(f'There are {self._getNumOpenSeats()} seat(s) available at table {table_number+1}:\n')
         print(f'People currently at table {table_number+1}:\n')
@@ -405,6 +437,7 @@ class Table:
                 print(f'{player.player_name}')
         print()
 
+
     def _getNumOpenSeats(self) -> int:
         open_seat_count: int = 0
         for player in self.table_seats:
@@ -412,26 +445,34 @@ class Table:
                 open_seat_count += 1
         return open_seat_count
     
+
     def resetTable(self) -> None:
         leaving_players: list[int] = []
         for i, player in enumerate(self.table_seats):
-            if player is not None:
+
+            if player is None:
+                continue
+
+            elif (player.money < 500 or player.over) and (player.type != 'player') and rand > 80:
+                leaving_players.append(i)
+                continue
+            
+            else:
                 player.hands = []
                 player.bet = 0
                 rand = randint(1,100)
-
-                if (player.money < 500 or player.over) and (player.type != 'player') and rand > 80:
-                    leaving_players.append(i)
-
-                player.over = False
+                player.setStatus(False)
         
         #remove players who left the table
         for index in leaving_players:
             self.table_seats.pop(index)
-            
+        
+        # reset dealer
         self.dealer.hands = []
+        self.dealer.setStatus(False)
 
         self._populateTable()
+
 
     def _populateTable(self) -> None:
         players: list[Player] = []
@@ -465,11 +506,14 @@ class Casino:
         self.num_tables: int = num_tables
         self.tables: list[Table] = []
     
+
     def getTable(self, table_number: int) -> Table:
         return self.tables[table_number - 1]
     
+
     def getTables(self) -> list[Table]:
         return self.tables
     
+
     def addTable(self, table: Table) -> None:
         self.tables.append(table)

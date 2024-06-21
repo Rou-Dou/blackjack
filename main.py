@@ -12,7 +12,7 @@ dealer: Dealer
 
 # Player character select. Print current players and prompt for selection
 # If the player types 'new' create a new character, otherwise
-# store the selected index value, then create the Player class
+# store the selected index value, then create the Player class {
 while True:
     for count, player in enumerate(player_dictionary['player'], 1):
         print(f'{count}: {player["player_name"]}')
@@ -20,7 +20,7 @@ while True:
     profile_index: str = input(prompts["profile"])
 
     if profile_index == 'new':
-        createPlayerCharacter(player_dictionary)
+        createPlayerCharacter()
 
     elif not profile_index.isdigit() or ( \
         int(profile_index) > len(player_dictionary['player']) or \
@@ -30,27 +30,35 @@ while True:
     else:
         profile_index_int: int = int(profile_index)
         break
+# }
 
-profile_object = player_dictionary["player"][profile_index_int - 1]
-selected_profile = Player(profile_object['player_id'], 'player', profile_object['player_name'], profile_object["money"], profile_object['affinity'])
+profile_object: dict = player_dictionary["player"][profile_index_int - 1]
+selected_profile = Player(profile_object['player_id'], 
+                          'player', profile_object['player_name'], 
+                          profile_object["money"], 
+                          profile_object['affinity'])
 
-# Populate the tables in the casino with players
+
+# { Populate the tables in the casino with players
 for i in range(0, num_tables):
     new_dealer: Dealer = Dealer('', Deck(), Hand())
     new_table: Table = Table(new_dealer, min_bets[i])
     new_table._populateTable()
     main_casino.addTable(new_table)
+## }
 
-# display the current population of tables and the players at them
+
+# { display the current population of tables and the players at them
 for count, table in enumerate(main_casino.tables):
     if not table.hasOpenSeats():
         print(f'table {count+1} is full')
         continue
     print(f'\nminimum bet for this table is {table.minimum_bet}')
     table.printTablePlayers(count)
+## }
 
-# prompt for table to sit at1
 
+# { prompt for table to sit at1
 while True:
     try:
         table_number: int = int(input(prompts["table"]))
@@ -64,18 +72,20 @@ while True:
             break
         else:
             print(f'Table {table_number} is full, please choose a table with open seats.')
-    
+## }
 
 
-# print seats available at the chose table
+# { print seats available at the chose table
 dealer = selected_table.dealer
 available_seats = selected_table.getOpenSeats()
 
 for seat in available_seats:
     seat += 1
     print(f'seat {seat}')
+## }
 
-# prompt player for preferred seat
+
+# prompt player for preferred seat {
 while True:
     try:
         selected_seat = int(input(prompts["seat"]))
@@ -85,11 +95,15 @@ while True:
     if  selected_seat > 0 and (selected_seat - 1) in available_seats:
         selected_table.table_seats[selected_seat-1] = selected_profile
         break
+# }
 
-# Betting loop
+
+#### Main game loop ####
 while True:
+
+    ## betting
     for player in selected_table.table_seats:
-        if player == None:
+        if player is None:
             continue
         
         # CPU loop, based on dice rolls, the CPU bets more or less.
@@ -110,7 +124,7 @@ while True:
         if player is not None:
             player.createHand()
 
-    table.dealer.createHand()
+    dealer.createHand()
     
     dealCards(dealer, table_players)
 
@@ -143,17 +157,22 @@ while True:
                     if player.hasTwentyOne(hand):
                         break
 
-                    # prompt player for their action, logic will catch their decision]
-                    player_prompt: str = 'What would you like to do? (hit/stand/double down/split): '
-                    player_response: str = player_input(player_prompt, ['hit', 'stand', 'doubledown', 'double down', 'split'])
+                    # prompt player for their action, logic will catch their decision
+                    valid_player_actions: list[str] = ['hit', 'stand', 'doubledown', 'split']
+
+                    player_response: str = player_input(prompts["hand_decision"], 
+                                                        valid_player_actions)
 
                     # in the case of double down, the player's bet is doubled and they are dealt a new card
                     # If they bust the hand is resolved right away, otherwise they are forced to stand
-                    if player_response == 'double down' or player_response == 'doubledown':
+                    if player_response == 'doubledown':
                         player.bet = player.bet*2
                         print(f'Your current bet is now {player.bet} chips')
+
                         dealer.deal_card(hand)
+
                         player.isOver()
+
                         player.print_player_hand()
                         sleep(1)
                         break
@@ -183,7 +202,6 @@ while True:
                     elif player_response == 'stand':
                         print('You stood')
                         player.print_player_hand()
-                        player.setStatus(False)
                         break
 
                 
@@ -207,7 +225,6 @@ while True:
                     # stand
                     else:
                         print(f'{player.player_name} stood')
-                        player.setStatus(False)
                         break
 
                 
@@ -226,7 +243,6 @@ while True:
             print(f'The dealer got a {new_card.show_card()}')
         else:
             print(f'The dealer stood with a hand value of {dealer_hand_value}\n')
-            dealer.setStatus(False)
             break
 
     # store dealer hand values for evaluation
@@ -253,9 +269,9 @@ while True:
         player_dictionary[player.type][index]["money"] = player.money
 
     # reset game
-    print()
+    print('\n')
     selected_table.resetTable()
-    saveGame(player_dictionary)
+    saveGame()
 
     # ask for quit
     player_prompt = 'Would you like to play another round (yes/no)? '

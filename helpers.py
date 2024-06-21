@@ -8,10 +8,6 @@ with open('prompts.json', 'r') as json_file:
 
 def initGame() -> dict[str, Any]:
 
-    txt_file = open('player_dictionary.json', 'r')
-    player_dictionary: dict[str, Any] = json.load(txt_file)
-    txt_file.close()
-
     # generate cpu and dealer on first launch
     if len(player_dictionary['cpu']) == 0 or len(player_dictionary['dealer']) == 0:
         bot_txt = open('bot_names.txt', 'r')
@@ -21,9 +17,9 @@ def initGame() -> dict[str, Any]:
             bot_names.append(line.strip())
 
         while len(bot_names) > 0:
-            createPlayer(player_dictionary, 'cpu', bot_names.pop(0), 2000, 0)
+            createPlayer('cpu', bot_names.pop(0), 2000, 0)
 
-        createPlayer(player_dictionary, 'dealer', 'Dealer', 10000000, 0)
+        createPlayer('dealer', 'Dealer', 10000000, 0)
 
         bot_txt.close()
 
@@ -40,14 +36,20 @@ def findPlayer(player_dictionary: dict[str, Any], player: Player) -> int:
     return index
 
 
-def saveGame(player_dictionary: dict[str, Any]) -> None:
-    txt_file = open('player_dictionary.json', 'w')
-    json.dump(player_dictionary, txt_file)
-    txt_file.close()
+def saveGame() -> None:
+    '''
+    Writes all game information to file.
+    '''
+    with open('player_dictionary.json', 'w') as txt_file:
+        json.dump(player_dictionary, txt_file)
 
 
 def player_bet_input(player: Player) -> int:
-
+    '''
+    Handles player bet input, ensuring that the player
+    has entered an integer value and a value that they
+    can afford.
+    '''
     print(f'You have {player.money} chips')
     sleep(1)
 
@@ -67,7 +69,37 @@ def player_bet_input(player: Player) -> int:
         return int(player_bet)
     
 
-def createPlayerCharacter(player_dictionary: dict[str, Any]) -> None:
+def player_input(prompt: str, valid_inputs: list[str]) -> str:
+    '''
+    Generic function intended to handle string input
+    prompts. You provide a prompt and valid inputs. This
+    will ensure the string is valid and that the user enters
+    one of the valid inputs. Returns the users input.
+
+    Conditions:\n
+    valid inputs should always be lower case with no spaces
+
+    >> player_input('enter yes or no', [yes, no])\n
+    >> 'yes'
+    '''
+    player_input: str = ''
+
+    while True:   
+        player_input = input(prompt)
+
+        if player_input.replace(' ', '').isalpha():
+            player_input = player_input.lower().replace(" ", "")
+        else:
+            continue
+        
+        if player_input in valid_inputs:
+            break
+
+    return player_input
+        
+    
+
+def createPlayerCharacter() -> None:
     # create player character
     player_name_prompt: str = 'What is your players name?: '
 
@@ -82,18 +114,20 @@ def createPlayerCharacter(player_dictionary: dict[str, Any]) -> None:
         else:
             break
 
-    createPlayer(player_dictionary, "player", player_name, 2000, 0)
+    createPlayer("player", player_name, 2000, 0)
     
-    saveGame(player_dictionary)
+    saveGame()
 
 
-def createPlayer(player_dictionary: dict[str, Any], player_type: str, player_name: str, money: int, affinity: int) -> Player:
+def createPlayer(player_type: str, player_name: str, money: int, affinity: int) -> Player:
     character_id: str = uuid.uuid4().hex
-    new_player = Player(character_id, player_type, player_name, money, affinity)
+    new_player: Player = Player(character_id, player_type, player_name, money, affinity)
+
     player_dictionary[player_type].append(new_player.toJSON())
+
     return new_player
     
-
+## SHOULD BE METHOD IN TABLE
 def dealCards(dealer: Dealer, players: list[Union[Player, None]]) -> None:
 
     dealer.burn_card()
@@ -125,17 +159,3 @@ def shouldHit(dealer_up_card_value, hand_value) -> bool:
         shouldHit = True
 
     return shouldHit
-
-def player_input(prompt: str, valid_inputs: list[str]) -> str:
-    player_input: str = ''
-   
-    while True:   
-        player_input = input(prompt)
-
-        if not player_input.isalpha() or player_input not in valid_inputs:
-            continue
-
-        break
-
-    return player_input.lower()
-        
