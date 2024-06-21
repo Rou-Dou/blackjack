@@ -85,29 +85,6 @@ def createPlayerCharacter(player_dictionary: dict[str, Any]) -> None:
     createPlayer(player_dictionary, "player", player_name, 2000, 0)
     
     saveGame(player_dictionary)
-        
-
-def populate_table(table: Table, player_dictionary: dict[str, Any]) -> Table:
-    players: list[Player] = []
-    rand_num: int = -1
-
-    while len(players) < 10:
-        repeat: bool = False
-        selected_player: dict[str, Any] = (player_dictionary['cpu'][randint(0, len(player_dictionary['cpu']) - 1)])
-        for player in players:
-            if player.player_name == selected_player['player_name']:
-                repeat = True
-
-        if not repeat:
-            players.append(Player(selected_player['player_id'], 'cpu', selected_player["player_name"], selected_player["money"], selected_player["affinity"]))
-    
-    while len(table.table_seats) < 4:
-        rand_num = randint(1,100)
-        if rand_num > 50:
-            table.table_seats.append(None)
-        else:
-            table.table_seats.append(players.pop(randint(0, len(players) - 1)))    
-    return table
 
 
 def createPlayer(player_dictionary: dict[str, Any], player_type: str, player_name: str, money: int, affinity: int) -> Player:
@@ -130,28 +107,6 @@ def dealCards(dealer: Dealer, players: list[Union[Player, None]]) -> None:
         dealer.deal_self()
         deal_card += 1
 
-
-def resetTable(table: Table, dictionary: dict[str, Any]) -> None:
-
-    leaving_players: list[int] = []
-    for i, player in enumerate(table.table_seats):
-        if player is not None:
-            player.hands = []
-            player.bet = 0
-            rand = randint(1,100)
-
-            if (player.money < 500 or player.over) and (player.type != 'player') and rand > 80:
-                leaving_players.append(i)
-
-            player.over = False
-    
-    #remove players who left the table
-    for index in leaving_players:
-        table.table_seats.pop(index)
-        
-    table.dealer.hands = []
-    populate_table(table, dictionary)
-        
 
 # logic here is based on 'ideal' blackjack play at a basic level
 # A simple series of dealer/player conditions are considered for when the CPU

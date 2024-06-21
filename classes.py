@@ -4,6 +4,8 @@ from time import sleep
 from typing import Any, Union
 from random import randint, choice
 import uuid
+with open('player_dictionary.json','r') as json_file:
+    player_dictionary: dict[str, Any] = json.load(json_file)
 
 json_file = open('value_dictionary.json', 'r')
 value_dictionary: dict[str, int] = json.load(json_file)
@@ -378,9 +380,9 @@ class Dealer(Player):
 
 
 class Table:
-    def __init__(self, dealer: Dealer) -> None:
+    def __init__(self, dealer: Dealer, min_bet: int) -> None:
         self.table_seats: list[Union[Player, None]] = []
-        self.minimum_bet: int = 0
+        self.minimum_bet: int = min_bet
         self.dealer: Dealer = dealer
 
     def getOpenSeats(self) -> list[int]:
@@ -390,20 +392,72 @@ class Table:
                 open_seat_indexes.append(i)
         return open_seat_indexes
     
+    def hasOpenSeats(self) -> bool:
+        if self._getNumOpenSeats() < 1:
+            return False
+        return True
+    
     def printTablePlayers(self, table_number) -> None:
-        print(f'There are {self.getNumOpenSeats()} seat(s) available at table {table_number+1}:\n')
+        print(f'There are {self._getNumOpenSeats()} seat(s) available at table {table_number+1}:\n')
         print(f'People currently at table {table_number+1}:\n')
         for player in self.table_seats:
             if player is not None:
                 print(f'{player.player_name}')
         print()
 
-    def getNumOpenSeats(self) -> int:
+    def _getNumOpenSeats(self) -> int:
         open_seat_count: int = 0
         for player in self.table_seats:
-            if player is not None:
+            if player is None:
                 open_seat_count += 1
         return open_seat_count
+    
+    def resetTable(self) -> None:
+        leaving_players: list[int] = []
+        for i, player in enumerate(self.table_seats):
+            if player is not None:
+                player.hands = []
+                player.bet = 0
+                rand = randint(1,100)
+
+                if (player.money < 500 or player.over) and (player.type != 'player') and rand > 80:
+                    leaving_players.append(i)
+
+                player.over = False
+        
+        #remove players who left the table
+        for index in leaving_players:
+            self.table_seats.pop(index)
+            
+        self.dealer.hands = []
+
+        self._populateTable()
+
+    def _populateTable(self) -> None:
+        players: list[Player] = []
+        rand_num: int = -1
+
+        while len(players) < 10:
+            repeat: bool = False
+            selected_player: dict[str, Any] = (player_dictionary['cpu'][randint(0, len(player_dictionary['cpu']) - 1)])
+            for player in players:
+                if player.player_name == selected_player['player_name']:
+                    repeat = True
+
+            if not repeat:
+                players.append(Player(selected_player['player_id'], 
+                                      'cpu', 
+                                      selected_player["player_name"], 
+                                      selected_player["money"], 
+                                      selected_player["affinity"]))
+        
+        while len(self.table_seats) < 4:
+            rand_num = randint(1,100)
+            if rand_num > 50:
+                self.table_seats.append(None)
+            else:
+                self.table_seats.append(players.pop(randint(0, len(players) - 1)))    
+
 
 
 class Casino:

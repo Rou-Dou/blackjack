@@ -2,7 +2,7 @@ from helpers import *
 import mypy
 
 # main globals
-player_dictionary: dict[str, Any] = initGame()
+min_bets: list[int] = [10, 25, 50, 100]
 num_tables: int = 4
 main_casino: Casino = Casino(num_tables)
 selected_seat: int = -1
@@ -36,16 +36,21 @@ selected_profile = Player(profile_object['player_id'], 'player', profile_object[
 
 # Populate the tables in the casino with players
 for i in range(0, num_tables):
-    populated_table: Table = populate_table(Table(Dealer('', Deck(), Hand())), player_dictionary)
-    if populated_table.getNumOpenSeats() > 0:
-        main_casino.addTable(populated_table)
+    new_dealer: Dealer = Dealer('', Deck(), Hand())
+    new_table: Table = Table(new_dealer, min_bets[i])
+    new_table._populateTable()
+    main_casino.addTable(new_table)
 
 # display the current population of tables and the players at them
 for count, table in enumerate(main_casino.tables):
-    print()
+    if not table.hasOpenSeats():
+        print(f'table {count+1} is full')
+        continue
+    print(f'\nminimum bet for this table is {table.minimum_bet}')
     table.printTablePlayers(count)
 
-# prompt for table to sit at
+# prompt for table to sit at1
+
 while True:
     try:
         table_number: int = int(input(prompts["table"]))
@@ -55,7 +60,12 @@ while True:
 
     if table_number <= len(main_casino.tables) and table_number > 0:
         selected_table  = main_casino.getTable(table_number)
-        break
+        if selected_table.hasOpenSeats():
+            break
+        else:
+            print(f'Table {table_number} is full, please choose a table with open seats.')
+    
+
 
 # print seats available at the chose table
 dealer = selected_table.dealer
@@ -67,7 +77,11 @@ for seat in available_seats:
 
 # prompt player for preferred seat
 while True:
-    selected_seat = int(input(prompts["seat"]))
+    try:
+        selected_seat = int(input(prompts["seat"]))
+    except Exception: 
+        print('invalid input, please enter a valid seat number')
+
     if  selected_seat > 0 and (selected_seat - 1) in available_seats:
         selected_table.table_seats[selected_seat-1] = selected_profile
         break
@@ -240,7 +254,7 @@ while True:
 
     # reset game
     print()
-    resetTable(selected_table, player_dictionary)
+    selected_table.resetTable()
     saveGame(player_dictionary)
 
     # ask for quit
