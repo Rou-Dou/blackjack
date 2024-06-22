@@ -35,6 +35,10 @@ class Suits(Enum):
 
 
 class Card:
+    '''
+    Card class, carries thte face, suit, and value properties for each card in the game
+    available methods include\n `show_card()`
+    '''
     def __init__(self, face: str, suit: str, value: int) -> None:
         self.face: str = face
         self.suit: str = suit
@@ -46,6 +50,15 @@ class Card:
 
 
 class Hand:
+    '''
+    This class handles hands for players. Each hand contains a list of `Card()` classes\n
+    Methods include:\n
+    `add_card()`\n
+    `count_hand()`\n
+    `has_ace()`\n
+    `print_hand()`\n
+    `clear_hand()`
+    '''
     def __init__(self) -> None:
         self.cards: list[Card] = [] #hand is type list with object
 
@@ -90,6 +103,14 @@ class Hand:
 
 
 class Deck:
+    '''
+    The deck class handles all interactions involving the deck of cards.
+    The primary contents are a list of `Card()` classes. Two internal functions
+    construct the decks contents and shuffle them.\n
+    Methods include:\n
+    `append_deck()`\n
+    `num_cards()`\n
+    '''
     def __init__(self) -> None:
         self.cards: list[Card] = [] #cards is a list of class Card
         self._create_deck()
@@ -100,11 +121,6 @@ class Deck:
         for suit in Suits:
             for face in Faces:
                 self.cards.append(Card(face.name, suit.name, card_values[face.name]))
-    
-
-    def get_deck(self) -> None:
-        for card in self.cards:
-            card.show_card()
 
 
     def append_deck(self, deck: "Deck") -> None:
@@ -233,6 +249,22 @@ class Deck:
 
 
 class Player:
+    '''
+    The player class contains all information for both human and cpu players.
+    the constructor requires an id, a type, a player_name, money, and an affinity value.\n
+    Methods include:\n
+    `print_player_hand()`\n
+    `toJSON()`\n
+    `makeBet()`\n
+    `setStatus()`\n
+    `createHand()`\n
+    `affinityUp()`\n
+    `affinityDown()`\n
+    `hasTwentyOne()`\n
+    `isOver()`\n
+
+
+    '''
     def __init__(self, id: str, type: str, player_name: str, money: int, affinity: int) -> None:
         self.id: str = id
         self.type: str = type
@@ -383,6 +415,14 @@ class Player:
         return False
 
 class Dealer(Player):
+    '''
+    The dealer class is a subclass of the `Player()` class. it handles all actions of the 
+    dealer while inheriting functionality from the player class.\n
+    Methods include:\n
+    `deal_card()`\n
+    `burn_card()`\n
+    `get_dealer_up_card()`
+    '''
     def __init__(self, id: str, deck: Deck, hand: Hand) -> None:
         self.id: str = id
         self.deck: Deck = deck
@@ -400,15 +440,37 @@ class Dealer(Player):
         self.deck.cards.pop(0)
     
 
-    def deal_self(self) -> None:
+    def _dealSelf(self) -> None:
         self.hands[0].add_card(self.deck.cards.pop(0))
 
 
     def get_dealer_up_card(self) -> Card:
         return self.hands[0].cards[1]
-
+    
+    
+    def dealCards(self, players: list[Union[Player, None]]) -> None:
+        self.burn_card()
+        
+        deal_card: int = 1
+        while deal_card < 3:
+            for player in players:
+                if player is None:
+                    continue
+                self.deal_card(player.hands[0])
+            self._dealSelf()
+            deal_card += 1
 
 class Table:
+    '''
+    the table class holds all assigned `Player()` classes in a list 
+    as well as a `Dealer()` class. Each table has an assigned
+    minimum bet
+    Methods include:\n
+    `getOpenSeats()`\n
+    `hasOpenSeats()`\n
+    `printTablePlayers()`\n
+    `resetTable()`\n
+    '''
     def __init__(self, dealer: Dealer, min_bet: int) -> None:
         self.table_seats: list[Union[Player, None]] = []
         self.minimum_bet: int = min_bet
@@ -468,7 +530,7 @@ class Table:
             self.table_seats.pop(index)
         
         # reset dealer
-        self.dealer.hands = []
+        self.dealer.hands[0].clear_hand()
         self.dealer.setStatus(False)
 
         self._populateTable()
@@ -486,18 +548,22 @@ class Table:
                     repeat = True
 
             if not repeat:
-                players.append(Player(selected_player['player_id'], 
-                                      'cpu', 
-                                      selected_player["player_name"], 
-                                      selected_player["money"], 
-                                      selected_player["affinity"]))
+                players.append(
+                    Player(
+                        selected_player['player_id'], 
+                        'cpu', 
+                        selected_player["player_name"], 
+                        selected_player["money"], 
+                        selected_player["affinity"]
+                    )
+                )
         
         while len(self.table_seats) < 4:
             rand_num = randint(1,100)
             if rand_num > 50:
                 self.table_seats.append(None)
             else:
-                self.table_seats.append(players.pop(randint(0, len(players) - 1)))    
+                self.table_seats.append(players.pop(randint(0, len(players) - 1)))
 
 
 

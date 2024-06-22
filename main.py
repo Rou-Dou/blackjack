@@ -12,7 +12,7 @@ dealer: Dealer
 
 # Player character select. Print current players and prompt for selection
 # If the player types 'new' create a new character, otherwise
-# store the selected index value, then create the Player class {
+# store the selected index value, then create the Player class
 while True:
     for count, player in enumerate(player_dictionary['player'], 1):
         print(f'{count}: {player["player_name"]}')
@@ -30,7 +30,7 @@ while True:
     else:
         profile_index_int: int = int(profile_index)
         break
-# }
+
 
 profile_object: dict = player_dictionary["player"][profile_index_int - 1]
 selected_profile = Player(profile_object['player_id'], 
@@ -39,23 +39,22 @@ selected_profile = Player(profile_object['player_id'],
                           profile_object['affinity'])
 
 
-# { Populate the tables in the casino with players
+## Populate the tables in the casino with players
 for i in range(0, num_tables):
     new_dealer: Dealer = Dealer('', Deck(), Hand())
     new_table: Table = Table(new_dealer, min_bets[i])
     new_table._populateTable()
     main_casino.addTable(new_table)
-## }
 
 
-# { display the current population of tables and the players at them
+
+# display the current population of tables and the players at them
 for count, table in enumerate(main_casino.tables):
     if not table.hasOpenSeats():
         print(f'table {count+1} is full')
         continue
     print(f'\nminimum bet for this table is {table.minimum_bet}')
     table.printTablePlayers(count)
-## }
 
 
 # { prompt for table to sit at1
@@ -123,10 +122,8 @@ while True:
     for player in table_players:
         if player is not None:
             player.createHand()
-
-    dealer.createHand()
     
-    dealCards(dealer, table_players)
+    selected_table.dealer.dealCards(table_players)
 
     # Print dealer information for player
     dealer_up_card: Card = dealer.get_dealer_up_card()

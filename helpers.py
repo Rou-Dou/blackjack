@@ -7,6 +7,10 @@ with open('prompts.json', 'r') as json_file:
 
 
 def initGame() -> dict[str, Any]:
+    '''
+    Instantiates the player_dictionary. This includes populating
+    the player dictionary if the game has never been launched.
+    '''
 
     # generate cpu and dealer on first launch
     if len(player_dictionary['cpu']) == 0 or len(player_dictionary['dealer']) == 0:
@@ -19,17 +23,25 @@ def initGame() -> dict[str, Any]:
         while len(bot_names) > 0:
             createPlayer('cpu', bot_names.pop(0), 2000, 0)
 
-        createPlayer('dealer', 'Dealer', 10000000, 0)
-
         bot_txt.close()
 
     return player_dictionary
 
 
 def findPlayer(player_dictionary: dict[str, Any], player: Player) -> int:
+    '''
+    Retrieve a players index location in the dictionary player list.
+    If the player cannot be found return -1.
+
+    >>> findPlayer(player_dictionary, Player('id123', 'john', 'cpu', 0, 0)
+    12
+
+    >>> findPlayer(player_dictionary, Player('id124', 'mary', 'player', 0, 0))
+    -1
+    '''
     try:
         for index, player_object in enumerate(player_dictionary[player.type]):
-            if player.player_name == player_object['player_name']:
+            if player.id == player_object['player_id']:
                 break
     except ValueError:
         index = -1
@@ -38,7 +50,7 @@ def findPlayer(player_dictionary: dict[str, Any], player: Player) -> int:
 
 def saveGame() -> None:
     '''
-    Writes all game information to file.
+    Writes all game information to json file.
     '''
     with open('player_dictionary.json', 'w') as txt_file:
         json.dump(player_dictionary, txt_file)
@@ -79,8 +91,8 @@ def player_input(prompt: str, valid_inputs: list[str]) -> str:
     Conditions:\n
     valid inputs should always be lower case with no spaces
 
-    >> player_input('enter yes or no', [yes, no])\n
-    >> 'yes'
+    >>> player_input('enter yes or no', [yes, no])
+    'yes'
     '''
     player_input: str = ''
 
@@ -100,6 +112,10 @@ def player_input(prompt: str, valid_inputs: list[str]) -> str:
     
 
 def createPlayerCharacter() -> None:
+    '''
+    Takes a player name from a user input and creates a player class using
+    the `createPlayer()` function.
+    '''
     # create player character
     player_name_prompt: str = 'What is your players name?: '
 
@@ -120,26 +136,17 @@ def createPlayerCharacter() -> None:
 
 
 def createPlayer(player_type: str, player_name: str, money: int, affinity: int) -> Player:
+    '''
+    Takes player class constructor inputs and creates a new player, adding the information
+    to the player dictionary and returning the player object. This function is used primarily for
+    populating the tables.
+    '''
     character_id: str = uuid.uuid4().hex
     new_player: Player = Player(character_id, player_type, player_name, money, affinity)
 
     player_dictionary[player_type].append(new_player.toJSON())
 
     return new_player
-    
-## SHOULD BE METHOD IN TABLE
-def dealCards(dealer: Dealer, players: list[Union[Player, None]]) -> None:
-
-    dealer.burn_card()
-    
-    deal_card: int = 1
-    while deal_card < 3:
-        for player in players:
-            if player is None:
-                continue
-            dealer.deal_card(player.hands[0])
-        dealer.deal_self()
-        deal_card += 1
 
 
 # logic here is based on 'ideal' blackjack play at a basic level
