@@ -1,8 +1,9 @@
 from time import sleep
+from typing import Union, Iterator
 
-def typeWriter(string, speed:str = 'slow') -> None:
+def typeWriter(string: Union[str, Iterator], speed: str = 'slow') -> None:
     '''
-    prints a given string with typewriter effect at either slow (0.05) or fast speed (0.02)
+    prints a given string with type writer effect at either slow (0.05) or fast speed (0.02)
     '''
 
     options: dict[str, float] = \

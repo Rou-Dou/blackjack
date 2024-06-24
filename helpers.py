@@ -2,6 +2,7 @@ from classes import *
 from misc_functions import *
 import uuid
 import json
+
 with open('prompts_responses.json', 'r') as json_file:
     prompts_responses: dict[str, Any] = json.load(json_file)
 
@@ -153,7 +154,7 @@ def createPlayer(player_type: str, player_name: str, money: int, affinity: int) 
 # logic here is based on 'ideal' blackjack play at a basic level
 # A simple series of dealer/player conditions are considered for when the CPU
 # should hit, otherwise `shouldHit` is false by default and the CPU will stand.
-def shouldHit(dealer_up_card_value, hand_value) -> bool:
+def shouldHit(dealer_up_card_value: int, hand_value: int) -> bool:
     shouldHit: bool = False
     if dealer_up_card_value >= 7 and 12 <= hand_value <= 16:
         shouldHit = True

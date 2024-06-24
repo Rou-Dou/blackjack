@@ -1,7 +1,7 @@
 from enum import Enum
 import json
 from time import sleep
-from typing import Any, Union
+from typing import Any, Union, Iterator
 from random import randint, choice
 import uuid
 
@@ -75,8 +75,11 @@ class Hand:
 
         return hand_str
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         return iter(self.__str__())
+    
+    def __next__(self) -> None:
+        pass
 
 
     def add_card(self, card: Card) -> None:
@@ -161,7 +164,7 @@ class Deck:
         return dh
     
 
-    def _shuffle_deck(self, num_shuffles) -> None:
+    def _shuffle_deck(self, num_shuffles: int) -> None:
         shuffle_count: int = 1
         current_shuffle: list[Card] = []
         left_half: list[Card] = []
@@ -308,10 +311,10 @@ class Player:
 
     def _generated_uuid(self) -> None:
         if self.id == '':
-            self.id = uuid.uuid4.hex()
+            self.id = uuid.uuid4().hex
 
         
-    def _get_bet(self, min_bet) -> int:
+    def _get_bet(self, min_bet: int) -> int:
         dice_roll: int = randint(1,6)
         reroll: int = randint(1,6)
         matches: int = 0
@@ -344,7 +347,7 @@ class Player:
 
 
     def set_status(self, over: bool) -> None:
-        self.over: bool = over
+        self.over = over
 
 
     def create_hand(self) -> None:
@@ -593,11 +596,12 @@ class Casino:
 
         return print_str
     
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         return iter(self.__str__())
         
-
-    
+        
+    def __next__(self) -> None:
+        pass
 
     def get_table(self, table_number: int) -> Table:
         return self.tables[table_number - 1]
