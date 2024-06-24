@@ -2,8 +2,8 @@ from classes import *
 from misc_functions import *
 import uuid
 import json
-with open('prompts.json', 'r') as json_file:
-    prompts: dict[str, str] = json.load(json_file)
+with open('prompts_responses.json', 'r') as json_file:
+    prompts_responses: dict[str, Any] = json.load(json_file)
 
 
 def initGame() -> dict[str, Any]:
@@ -56,7 +56,7 @@ def saveGame() -> None:
         json.dump(player_dictionary, txt_file)
 
 
-def player_bet_input(player: Player) -> int:
+def playerBetInput(player: Player) -> int:
     '''
     Handles player bet input, ensuring that the player
     has entered an integer value and a value that they
@@ -65,26 +65,27 @@ def player_bet_input(player: Player) -> int:
     print(f'You have {player.money} chips')
     sleep(1)
 
-    bet_string: str = prompts["bet"]
+    bet_string: str = prompts_responses["prompts"]["bet"]
     
     while True:
         player_bet: str = input(bet_string)
 
         if not player_bet.isdigit():
-            bet_string = prompts["invalid_bet_input"]
+            bet_string = prompts_responses["errors"]["invalid_bet_input"]
             continue
         
         if int(player_bet) > player.money:
-            bet_string = f'{prompts["insufficient_money"]} you currently have {player.money} chips.\nPlease make another bet: '
+            bet_string = 'f{prompts_responses["errors"]["insufficient_money"]}\
+            you currently have {player.money} chips.\nPlease make another bet: '
             continue
 
         return int(player_bet)
     
 
-def player_input(prompt: str, valid_inputs: list[str]) -> str:
+def playerInput(prompt: str, valid_inputs: list[str]) -> str:
     '''
     Generic function intended to handle string input
-    prompts. You provide a prompt and valid inputs. This
+    prompts_responses. You provide a prompt and valid inputs. This
     will ensure the string is valid and that the user enters
     one of the valid inputs. Returns the users input.
 
@@ -144,7 +145,7 @@ def createPlayer(player_type: str, player_name: str, money: int, affinity: int) 
     character_id: str = uuid.uuid4().hex
     new_player: Player = Player(character_id, player_type, player_name, money, affinity)
 
-    player_dictionary[player_type].append(new_player.toJSON())
+    player_dictionary[player_type].append(new_player.to_json())
 
     return new_player
 

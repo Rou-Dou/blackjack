@@ -61,42 +61,36 @@ class Hand:
     '''
     def __init__(self) -> None:
         self.cards: list[Card] = [] #hand is type list with object
+        self.value: int = 0
+
+    def __str__(self) -> str:
+        hand_str: str = ''
+        
+        hand_str += "Hand Contents: \n\n"
+
+        for position, card in enumerate(self.cards, 1):
+            hand_str += (f'{position}: {card.show_card()}\n')
+        
+        hand_str += f'\nValue: {self.value}'
+
+        return hand_str
+
+    def __iter__(self):
+        return iter(self.__str__())
 
 
     def add_card(self, card: Card) -> None:
         self.cards.append(card)
+        self._add_value(card)
 
-
-    def count_hand(self) -> int:
-        hand_value: int = 0
-        if hand_value > 21 and self.has_ace():
-            for card in self.cards:
-                if card.face == "Ace":
-                    card.value = 1
-                    
-        for card in self.cards:
-            hand_value += card.value
-
-            
-        return hand_value
-        
-
-    def has_ace(self) -> bool:
-        for card in self.cards:
-            if card.face == 'Ace':
-                return True
-        return False
     
+    def _add_value(self, card: Card) -> None:
+        new_value = self.value + card.value
 
-    def print_hand(self) -> None:
-        hand_str: str = ''
+        if new_value > 21 and card.face == 'Ace':
+            card.value = 1
         
-        print("Hand Contents: ")
-
-        for position, card in enumerate(self.cards, 1):
-            hand_str += (f'{position}: {card.show_card()}\n')
-        print(hand_str)
-    
+        self.value += card.value
 
     def clear_hand(self) -> None:
         self.cards.clear()
@@ -109,7 +103,8 @@ class Deck:
     construct the decks contents and shuffle them.\n
     Methods include:\n
     `append_deck()`\n
-    `num_cards()`\n
+    `is_thin()`\n
+    `num_cards()`
     '''
     def __init__(self) -> None:
         self.cards: list[Card] = [] #cards is a list of class Card
@@ -125,6 +120,11 @@ class Deck:
 
     def append_deck(self, deck: "Deck") -> None:
         self.cards = self.cards + deck.cards
+
+    def is_thin(self) -> bool:
+        if len(self.cards) < 15:
+            return True
+        return False
 
 
     def num_cards(self) -> int:
@@ -255,6 +255,7 @@ class Player:
     Methods include:\n
     `print_player_hand()`\n
     `toJSON()`\n
+    `isPlayer()`\n
     `makeBet()`\n
     `setStatus()`\n
     `createHand()`\n
@@ -275,14 +276,7 @@ class Player:
         self.affinity: int = affinity
     
 
-    def print_player_hand(self) -> None:
-        for count, hand in enumerate(self.hands, 1):
-            f"Hand {count}:\n"
-            f"\t{hand.print_hand()}"
-            print(f'with a value of {hand.count_hand()}\n')
-    
-
-    def toJSON(self) -> dict[str,Any]:
+    def to_json(self) -> dict[str,Any]:
         playerDict: dict[str, Any] = {}
         playerDict["player_id"] = self.id
         playerDict["player_name"] = self.player_name
@@ -290,8 +284,13 @@ class Player:
         playerDict["affinity"] = self.affinity
         return playerDict
     
+    def is_player(self) -> bool:
+        if self.type == 'player':
+            return True
+        return False
+    
 
-    def makeBet(self, bet: int, min_bet: int) -> None:
+    def make_bet(self, bet: int, min_bet: int) -> None:
         if bet < min_bet:
             bet = min_bet
         
@@ -302,37 +301,37 @@ class Player:
             
 
         elif self.type == 'cpu':
-            bet = self._getBet()
+            bet = self._get_bet(min_bet)
 
         self.bet = bet
 
 
-    def _generatedUuid(self) -> None:
+    def _generated_uuid(self) -> None:
         if self.id == '':
             self.id = uuid.uuid4.hex()
 
         
-    def _getBet(self) -> int:
+    def _get_bet(self, min_bet) -> int:
         dice_roll: int = randint(1,6)
         reroll: int = randint(1,6)
         matches: int = 0
-        low: int = 0
-        high :int = 0
+        low: int = -1
+        high :int = -1
 
         while reroll == dice_roll:
             reroll = randint(1,6)
             matches += 1
         match matches:
             case 0:
-                low, high = 5, 50
+                low, high = min_bet, min_bet*2
             case 1:
-                low, high = 50, 100
+                low, high = min_bet*2, min_bet*3
             case 2: 
-                low, high = 100, 200
+                low, high = min_bet*3, min_bet*4
             case _:
-                low, high = 200, 500
+                low, high = min_bet*4, self.money
         
-        bet: int = randint(low, high) 
+        bet: int = randint(low, high)
 
         mod_value: int = bet % 5
 
@@ -344,32 +343,32 @@ class Player:
         return bet
 
 
-    def setStatus(self, over: bool) -> None:
+    def set_status(self, over: bool) -> None:
         self.over: bool = over
 
 
-    def createHand(self) -> None:
+    def create_hand(self) -> None:
         new_hand: Hand = Hand()
         self.hands.append(new_hand)
 
 
-    def affinityUp(self) -> None:
+    def affinity_up(self) -> None:
         self.affinity += 1
     
 
-    def affinityDown(self) -> None:
+    def affinity_down(self) -> None:
         self.affinity -= 1
 
 
-    def hasTwentyOne(self, hand: Hand) -> bool:
+    def has_twenty_one(self, hand: Hand) -> bool:
         end_string: str = ""
         player_type_str: str = ""
         hand_length: int = len(hand.cards)
-        has_twenty_one: bool = hand.count_hand() == 21
+        has_twenty_one: bool = hand.value == 21
 
         # If player has 21 stand automatically
         if has_twenty_one:
-            self.setStatus(False)
+            self.set_status(False)
 
             match hand_length:
                 case 2:
@@ -392,12 +391,12 @@ class Player:
         return False
     
 
-    def isOver(self) -> bool:
+    def has_busted(self) -> bool:
         overMessage: str = ''
 
         for hand in self.hands:
-            if hand.count_hand() > 21:
-                self.setStatus(True)
+            if hand.value > 21:
+                self.set_status(True)
 
                 if isinstance(self, Player) and not isinstance(self, Dealer):
                     match self.type:
@@ -409,7 +408,7 @@ class Player:
                 else:
                     overMessage = 'The dealer busted!'
 
-                print(overMessage)
+                print(overMessage+'\n')
                 return True
             
         return False
@@ -440,25 +439,13 @@ class Dealer(Player):
         self.deck.cards.pop(0)
     
 
-    def _dealSelf(self) -> None:
+    def _deal_self(self) -> None:
         self.hands[0].add_card(self.deck.cards.pop(0))
 
 
     def get_dealer_up_card(self) -> Card:
         return self.hands[0].cards[1]
     
-    
-    def dealCards(self, players: list[Union[Player, None]]) -> None:
-        self.burn_card()
-        
-        deal_card: int = 1
-        while deal_card < 3:
-            for player in players:
-                if player is None:
-                    continue
-                self.deal_card(player.hands[0])
-            self._dealSelf()
-            deal_card += 1
 
 class Table:
     '''
@@ -466,18 +453,29 @@ class Table:
     as well as a `Dealer()` class. Each table has an assigned
     minimum bet
     Methods include:\n
-    `getOpenSeats()`\n
-    `hasOpenSeats()`\n
-    `printTablePlayers()`\n
-    `resetTable()`\n
+    `get_open_seats()`\n
+    `has_open_seats()`\n
+    `print_table_players()`\n
+    `reset_table()`\n
+    `deal_cards()`
     '''
     def __init__(self, dealer: Dealer, min_bet: int) -> None:
         self.table_seats: list[Union[Player, None]] = []
         self.minimum_bet: int = min_bet
         self.dealer: Dealer = dealer
 
+    def __str__(self) -> str:
+        print_str: str = ''
+        print_str += f'There are {self._get_num_open_seats()} seat(s) available: \n\n'
+        print_str += 'People at this table: \n\n'
+        for player in self.table_seats:
+            if player is not None:
+                print_str += f'{player.player_name}\n'
+        print_str += '\n'
+        return print_str
 
-    def getOpenSeats(self) -> list[int]:
+
+    def get_open_seats(self) -> list[int]:
         open_seat_indexes: list[int] = []
         for i, player in enumerate(self.table_seats):
             if player is None:
@@ -485,22 +483,12 @@ class Table:
         return open_seat_indexes
     
 
-    def hasOpenSeats(self) -> bool:
-        if self._getNumOpenSeats() < 1:
+    def has_open_seats(self) -> bool:
+        if self._get_num_open_seats() < 1:
             return False
         return True
     
-
-    def printTablePlayers(self, table_number) -> None:
-        print(f'There are {self._getNumOpenSeats()} seat(s) available at table {table_number+1}:\n')
-        print(f'People currently at table {table_number+1}:\n')
-        for player in self.table_seats:
-            if player is not None:
-                print(f'{player.player_name}')
-        print()
-
-
-    def _getNumOpenSeats(self) -> int:
+    def _get_num_open_seats(self) -> int:
         open_seat_count: int = 0
         for player in self.table_seats:
             if player is None:
@@ -508,14 +496,15 @@ class Table:
         return open_seat_count
     
 
-    def resetTable(self) -> None:
+    def reset_table(self) -> None:
         leaving_players: list[int] = []
         for i, player in enumerate(self.table_seats):
+            rand: int = randint(1,100)
 
             if player is None:
                 continue
 
-            elif (player.money < 500 or player.over) and (player.type != 'player') and rand > 80:
+            elif (player.money < 500 or player.over) and (not player.is_player()) and rand > 80:
                 leaving_players.append(i)
                 continue
             
@@ -523,7 +512,7 @@ class Table:
                 player.hands = []
                 player.bet = 0
                 rand = randint(1,100)
-                player.setStatus(False)
+                player.set_status(False)
         
         #remove players who left the table
         for index in leaving_players:
@@ -531,18 +520,19 @@ class Table:
         
         # reset dealer
         self.dealer.hands[0].clear_hand()
-        self.dealer.setStatus(False)
+        self.dealer.set_status(False)
 
-        self._populateTable()
+        self.populate_table()
 
 
-    def _populateTable(self) -> None:
+    def populate_table(self) -> None:
         players: list[Player] = []
         rand_num: int = -1
 
         while len(players) < 10:
             repeat: bool = False
-            selected_player: dict[str, Any] = (player_dictionary['cpu'][randint(0, len(player_dictionary['cpu']) - 1)])
+            selected_player: dict[str, Any] = (
+                player_dictionary['cpu'][randint(0, len(player_dictionary['cpu']) - 1)])
             for player in players:
                 if player.player_name == selected_player['player_name']:
                     repeat = True
@@ -565,21 +555,57 @@ class Table:
             else:
                 self.table_seats.append(players.pop(randint(0, len(players) - 1)))
 
+    
+    def initiate_hand(self) -> None:
+        # give each player at the table a hand and deal cards
+        for player in self.table_seats:
+            if player is not None:
+                player.create_hand()
+
+        self.dealer.burn_card()
+        
+        deal_card: int = 1
+        while deal_card < 3:
+            for player in self.table_seats:
+                if player is None:
+                    continue
+                self.dealer.deal_card(player.hands[0])
+            self.dealer._deal_self()
+            deal_card += 1
+
 
 
 class Casino:
     def __init__(self, num_tables: int) -> None:
         self.num_tables: int = num_tables
         self.tables: list[Table] = []
+
+    def __str__(self) -> str:
+        print_str: str = ''
+        for count, table in enumerate(self.tables, 1):
+            if not table.has_open_seats():
+                print_str += f'Table {count} is full\n\n'
+                continue
+            print_str += f'Table {count}: \n'
+            print_str += f'\033[01m\nminimum bet for this table is {table.minimum_bet}\033[00m\n'
+
+            print_str += table.__str__()
+
+        return print_str
+    
+    def __iter__(self):
+        return iter(self.__str__())
+        
+
     
 
-    def getTable(self, table_number: int) -> Table:
+    def get_table(self, table_number: int) -> Table:
         return self.tables[table_number - 1]
     
 
-    def getTables(self) -> list[Table]:
+    def get_tables(self) -> list[Table]:
         return self.tables
     
 
-    def addTable(self, table: Table) -> None:
+    def add_table(self, table: Table) -> None:
         self.tables.append(table)

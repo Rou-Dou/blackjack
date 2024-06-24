@@ -17,14 +17,16 @@ while True:
     for count, player in enumerate(player_dictionary['player'], 1):
         print(f'{count}: {player["player_name"]}')
 
-    profile_index: str = input(prompts["profile"])
+    player_prompt = prompts_responses["prompts"]["profile"]
+
+    profile_index: str = input(player_prompt)
 
     if profile_index == 'new':
         createPlayerCharacter()
 
-    elif not profile_index.isdigit() or ( \
-        int(profile_index) > len(player_dictionary['player']) or \
-        int(profile_index) < 1):
+    elif not profile_index.isdigit() \
+        or (int(profile_index) > len(player_dictionary['player']) \
+        or  int(profile_index) < 1):
         continue
 
     else:
@@ -34,143 +36,134 @@ while True:
 
 profile_object: dict = player_dictionary["player"][profile_index_int - 1]
 selected_profile = Player(profile_object['player_id'], 
-                          'player', profile_object['player_name'], 
+                         'player', profile_object['player_name'], 
                           profile_object["money"], 
-                          profile_object['affinity'])
+                          profile_object['affinity']
+                         )
 
+print()
 
-## Populate the tables in the casino with players
+# Populate the tables in the casino with players
 for i in range(0, num_tables):
     new_dealer: Dealer = Dealer('', Deck(), Hand())
     new_table: Table = Table(new_dealer, min_bets[i])
-    new_table._populateTable()
-    main_casino.addTable(new_table)
-
+    new_table.populate_table()
+    main_casino.add_table(new_table)
 
 
 # display the current population of tables and the players at them
-for count, table in enumerate(main_casino.tables):
-    if not table.hasOpenSeats():
-        print(f'table {count+1} is full')
-        continue
-    print(f'\nminimum bet for this table is {table.minimum_bet}')
-    table.printTablePlayers(count)
+typeWriter(main_casino, 'fast')
 
-
-# { prompt for table to sit at1
+# prompt for table to sit at
 while True:
+    player_prompt = prompts_responses["prompts"]["table"]
     try:
-        table_number: int = int(input(prompts["table"]))
+        table_number: int = int(input(player_prompt))
     except Exception:
-        print(prompts["invalid_list_input"])
+        print(prompts_responses["errors"]["invalid_list_input"])
         continue
 
     if table_number <= len(main_casino.tables) and table_number > 0:
-        selected_table  = main_casino.getTable(table_number)
-        if selected_table.hasOpenSeats():
+        selected_table  = main_casino.get_table(table_number)
+        if selected_table.has_open_seats():
             break
         else:
-            print(f'Table {table_number} is full, please choose a table with open seats.')
-## }
+            typeWriter(f'Table {table_number} is full, please choose a table with open seats.')
 
 
-# { print seats available at the chose table
+# print seats available at the chose table
 dealer = selected_table.dealer
-available_seats = selected_table.getOpenSeats()
+available_seats = selected_table.get_open_seats()
 
 for seat in available_seats:
-    seat += 1
-    print(f'seat {seat}')
-## }
+    print(f'seat {seat + 1}')
 
 
-# prompt player for preferred seat {
+# prompt player for preferred seat
 while True:
+    player_prompt = prompts_responses["prompts"]["seat"]
     try:
-        selected_seat = int(input(prompts["seat"]))
-    except Exception: 
-        print('invalid input, please enter a valid seat number')
+        selected_seat = int(input(player_prompt))
+    except Exception:
+        error_prompt = player_prompt["errors"]["invalid_seat_num"]
+        print(error_prompt)
 
     if  selected_seat > 0 and (selected_seat - 1) in available_seats:
         selected_table.table_seats[selected_seat-1] = selected_profile
         break
-# }
 
 
 #### Main game loop ####
 while True:
 
-    ## betting
+    ## betting ##
     for player in selected_table.table_seats:
         if player is None:
             continue
         
         # CPU loop, based on dice rolls, the CPU bets more or less.
-        elif player.type == 'cpu':
-            player.makeBet(0, selected_table.minimum_bet)
+        elif not player.is_player():
+            player.make_bet(0, selected_table.minimum_bet)
             print(f'{player.player_name} bet {player.bet} chips')
         
         # Player is prompted to bet here
-        elif player.type == 'player':
-            bet: int = player_bet_input(player)
-            player.makeBet(bet, selected_table.minimum_bet)
+        elif player.is_player():
+            bet: int = playerBetInput(player)
+            player.make_bet(bet, selected_table.minimum_bet)
             typeWriter(f'You bet {player.bet} chips')
 
-    table_players: list[Union[Player, None]] = selected_table.table_seats
-
-    # give each player at the table a hand and deal cards
-    for player in table_players:
-        if player is not None:
-            player.createHand()
-    
-    selected_table.dealer.dealCards(table_players)
+    selected_table.initiate_hand()
 
     # Print dealer information for player
     dealer_up_card: Card = dealer.get_dealer_up_card()
     dealer_up_card_value: int = dealer_up_card.value
-    deck = table.dealer.deck
+    deck = selected_table.dealer.deck
 
-    print(f"The dealer has a {dealer_up_card.show_card()}\n")
+    typeWriter(f"The dealer has a {dealer_up_card.show_card()}\n")
 
     ### Hit/Stand loop ###
 
     # Empty player seats are skipped, search for player type to determine what to do
-    for player in table_players:
+    for player in selected_table.table_seats:
 
         if player is None:
             continue
 
         # check if a new deck needs to be created and create one if so    
-        if deck.num_cards() < 15:
+        if deck.is_thin():
             new_deck: Deck = Deck()
             deck.append_deck(new_deck)
 
         for hand in player.hands:
             while True:
                 # first_player turn
-                if player.type == 'player':
-                    player.print_player_hand()
+                if player.is_player():
+                    typeWriter(hand, 'fast')
                     
-                    if player.hasTwentyOne(hand):
+                    if player.has_twenty_one(hand):
                         break
 
                     # prompt player for their action, logic will catch their decision
                     valid_player_actions: list[str] = ['hit', 'stand', 'doubledown', 'split']
+                    
+                    player_prompt = prompts_responses["prompts"]["hand_decision"]
 
-                    player_response: str = player_input(prompts["hand_decision"], 
-                                                        valid_player_actions)
+                    player_response: str = playerInput(
+                        player_prompt, 
+                        valid_player_actions
+                    )
 
                     # in the case of double down, the player's bet is doubled and they are dealt a new card
                     # If they bust the hand is resolved right away, otherwise they are forced to stand
                     if player_response == 'doubledown':
                         player.bet = player.bet*2
-                        print(f'Your current bet is now {player.bet} chips')
+                        typeWriter(f'Your current bet is now {player.bet} chips')
 
                         dealer.deal_card(hand)
 
-                        player.isOver()
+                        player.has_busted()
 
-                        player.print_player_hand()
+                        print(hand)
                         sleep(1)
                         break
                     
@@ -192,27 +185,26 @@ while True:
                         dealt_card: Card = dealer.deal_card(hand)
                         typeWriter(f'The dealer dealt a {dealt_card.face} of {dealt_card.suit}')
                               
-                        if player.isOver():
+                        if player.has_busted():
                             break
 
                     # if the player stands their hand is printed and the loop is broken.
                     elif player_response == 'stand':
-                        print('You stood')
-                        player.print_player_hand()
+                        typeWriter(f'You stood \n\n{hand}', 'fast')
                         break
 
                 
                 # CPU turn
-                elif player.type == 'cpu':
-                    hand_value: int = hand.count_hand()
+                elif  not player.is_player():
+                    hand_value: int = hand.value
                     willHit: bool = shouldHit(dealer_up_card_value, hand_value)
 
                     # bust 
-                    if player.isOver():
+                    if player.has_busted():
                         break
 
                     # 21/blackjack
-                    elif player.hasTwentyOne(hand):
+                    elif player.has_twenty_one(hand):
                         break
                     
                     # hit
@@ -221,33 +213,33 @@ while True:
 
                     # stand
                     else:
-                        print(f'{player.player_name} stood')
+                        print(f'{player.player_name} stood', end='\n\n')
                         break
 
                 
     # Dealer Turn
-    print("\nDealers Turn")
+    print("Dealers Turn", end='\n\n')
     while True:
-        dealer_hand_value: int = dealer.hands[0].count_hand()      
-        dealer.hands[0].print_hand()
-        print(f'\nValue: {dealer_hand_value}')
+        dealer_hand: Hand = dealer.hands[0]
+        dealer_hand_value: int = dealer_hand.value
+        print(dealer_hand)
 
-        if dealer.isOver() or dealer.hasTwentyOne(hand):
+        if dealer.has_busted() or dealer.has_twenty_one(dealer_hand):
             break
 
         elif dealer_hand_value < 17:
             new_card = dealer.deal_card(dealer.hands[0])
             print(f'The dealer got a {new_card.show_card()}')
         else:
-            print(f'The dealer stood with a hand value of {dealer_hand_value}\n')
+            print(f'The dealer stood with a hand value of {dealer_hand_value}', end='\n\n')
             break
 
     # store dealer hand values for evaluation
-    dealer_hand_value = dealer.hands[0].count_hand()
+    dealer_hand_value = dealer.hands[0].value
 
     #### Payout/loss calculation ####
     # for each player or CPU type, check a series of conditions and add or subtract chips 
-    for player in table_players:
+    for player in selected_table.table_seats:
         if player is None:
             continue
         
@@ -255,24 +247,24 @@ while True:
         # otherwise subtract chips. The loss calculations are only if the player has not gone over 21
         # over 21 calculations are calculated at the time of the bust
         for hand in player.hands:
-            if (not player.over and (dealer.over or hand.count_hand() > dealer_hand_value)):
+            if (not player.over and (dealer.over or hand.value > dealer_hand_value)):
                 player.money += round(player.bet * 1.5)
 
-            elif hand.count_hand() < dealer_hand_value and not player.over:
+            elif hand.value < dealer_hand_value and not player.over:
                 player.money -= round(player.bet)
 
-        print(f"{player.player_name} has {player.money} chips")
+        print(f"{player.player_name} has {player.money} chips", end='\n\n')
+
         index: int = findPlayer(player_dictionary, player)
         player_dictionary[player.type][index]["money"] = player.money
 
     # reset game
-    print('\n')
-    selected_table.resetTable()
+    selected_table.reset_table()
     saveGame()
 
     # ask for quit
-    player_prompt = 'Would you like to play another round (yes/no)? '
-    player_response = player_input(player_prompt, ['yes', 'no'])
+    player_prompt = prompts_responses["prompts"]["new_round"]
+    player_response = playerInput(player_prompt, ['yes', 'no'])
     
     if player_response == 'no':
         break

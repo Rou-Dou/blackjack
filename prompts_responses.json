@@ -1,0 +1,19 @@
+{
+    "prompts" :
+    {
+        "hand_decision" : "What would you like to do? (hit/stand/double down/split): ",
+        "bet" : "please enter a bet: ",
+        "seat" : "Which seat would you like to sit at?: ",
+        "table" : "Which table would you like to check out? ",
+        "profile" : "Type the number of the profile you would like to use? Type 'new' to create a new profile: ",
+        "new_round" : "Would you like to play another round (yes/no)? "
+    },
+
+    "errors" :
+    {
+        "invalid_seat_num" : "invalid input, please enter a valid seat number",
+        "invalid_list_input" : "Please enter a valid number from the provided list",
+        "invalid_bet_input" : "Your bet must be a whole number: ",
+        "insufficient_money" : "You do not have enough money to bet this amount"
+    }
+}
